@@ -19,14 +19,6 @@ Cable type: **JST PAP / S21** (Type B).
 
 The housing and installation procedure is practically identical to the Daikin Emura 3 – please refer to the [Emura 3 disassembly guide](disassembly-emura3.md#english).
 
-### Opening the unit
-
-*(coming soon)*
-
-### Closing the unit
-
-Reassemble in reverse order. Make sure all hooks click back into place before replacing the screws.
-
 ---
 
 ## Deutsch
@@ -39,11 +31,3 @@ Gilt für: FTXA, FTXTA Serie.
 Kabeltyp: **JST PAP / S21** (Typ B).
 
 Gehäuse und Vorgehensweise sind praktisch identisch zur Daikin Emura 3 – bitte die [Emura 3 Montagehinweise](disassembly-emura3.md#deutsch) beachten.
-
-### Gehäuse öffnen
-
-*(coming soon)*
-
-### Gehäuse schließen
-
-In umgekehrter Reihenfolge zusammenbauen. Sicherstellen, dass alle Haken einrasten, bevor die Schrauben eingedreht werden.
