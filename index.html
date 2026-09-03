@@ -24,7 +24,7 @@
   header h1 { font-size: 1.3rem; font-weight: 700; }
   header span { font-size: 0.85rem; opacity: 0.6; }
 
-  .container { max-width: 1100px; margin: 0 auto; padding: 24px 16px; }
+  .container { max-width: 1400px; margin: 0 auto; padding: 24px 16px; }
 
   /* Search bar */
   .search-row {
@@ -87,6 +87,7 @@
     border: 1px solid #373e47;
     white-space: nowrap;
   }
+  td.note-cell { white-space: normal; }
   td.model { font-weight: 600; font-family: monospace; font-size: 13px; color: #6cb6ff; }
 
   .type-badge {
@@ -111,8 +112,8 @@
   .info-table tr:last-child td { border-bottom: none; }
   .info-table tr:nth-child(even) td { background: #1c2128; }
 
-  .note-cell { display: flex; align-items: center; gap: 8px; min-width: 180px; }
-  .note-text { flex: 1; font-size: 13px; color: #adbac7; }
+  .note-cell { display: flex; align-items: flex-start; gap: 8px; min-width: 220px; max-width: 420px; }
+  .note-text { flex: 1; font-size: 13px; color: #adbac7; white-space: normal; word-break: break-word; }
   .suggest-link { opacity: 0.3; font-size: 14px; text-decoration: none; transition: opacity 0.15s; flex-shrink: 0; }
   .suggest-link:hover { opacity: 1; }
   .top-actions { display: flex; gap: 10px; margin-bottom: 14px; justify-content: flex-end; }
