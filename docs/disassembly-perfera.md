@@ -91,3 +91,7 @@ Kabeltyp: **JST PAP / S21** (Typ B).
 In umgekehrter Reihenfolge zusammenbauen. Sicherstellen, dass alle Haken einrasten, bevor die Schrauben eingedreht werden.
 
 *Fotos: www.yepoleb.at / Gabriel Huber*
+
+---
+
+<small><em>All information is provided for educational purposes based on community experience. No liability is accepted for errors, omissions, or any damage resulting from the use of this information. Always follow applicable local regulations, standards, and safety requirements. Work on electrical installations must only be carried out by qualified personnel. / Alle Informationen basieren auf Erfahrungen aus der Community und dienen ausschließlich zu Informationszwecken. Es wird keine Haftung für Fehler, Auslassungen oder Schäden übernommen, die aus der Nutzung entstehen. Einschlägige lokale Vorschriften, Normen und Sicherheitsanforderungen sind stets einzuhalten. Arbeiten an elektrischen Anlagen dürfen nur von qualifiziertem Fachpersonal durchgeführt werden.</em></small>

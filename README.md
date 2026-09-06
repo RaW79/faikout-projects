@@ -133,3 +133,7 @@ Firmware-Fork mit früher Ethernet-Unterstützung via **ESP32-C3 ETH01 EVO**. En
 Firmware-Port für **Mitsubishi Electric** Klimaanlagen (CN105-Anschluss) auf der Faikout-Hardware. Basiert auf mitsubishi2MQTT, angepasst auf den Faikout-Pinout.
 
 → [codeberg.org/RaW07/ESP32-Faikushi](https://codeberg.org/RaW07/ESP32-Faikushi)
+
+---
+
+<small><em>All information is provided for educational purposes based on community experience. No liability is accepted for errors, omissions, or any damage resulting from the use of this information. Always follow applicable local regulations, standards, and safety requirements. Work on electrical installations must only be carried out by qualified personnel. / Alle Informationen basieren auf Erfahrungen aus der Community und dienen ausschließlich zu Informationszwecken. Es wird keine Haftung für Fehler, Auslassungen oder Schäden übernommen, die aus der Nutzung entstehen. Einschlägige lokale Vorschriften, Normen und Sicherheitsanforderungen sind stets einzuhalten. Arbeiten an elektrischen Anlagen dürfen nur von qualifiziertem Fachpersonal durchgeführt werden.</em></small>
