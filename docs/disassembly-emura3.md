@@ -29,9 +29,13 @@ The Emura 3 requires full housing removal. The front panel is motor-driven and m
 
    <a href="img/emura3/02.jpeg"><img src="img/emura3/02.jpeg" width="500" alt="Screw locations"></a> <a href="img/emura3/03.jpeg"><img src="img/emura3/03.jpeg" width="500" alt="Cover removal"></a>
 
+   *Note: Cable type and routing should be verified against local regulations – a flexible cable (e.g. H07RN-F) may be required.*
+
 3. **Disconnect front panel cable** - Locate the white connector with colored wires at the locking mechanism and disconnect it.
 
    <a href="img/emura3/04.jpeg"><img src="img/emura3/04.jpeg" width="500" alt="Front panel cable"></a>
+
+   *Note: Cable type and routing should be verified against local regulations – a flexible cable (e.g. H07RN-F) may be required.*
 
 4. **Remove main housing** - Lift from three hooks (left, center, right) at the top by pressing against the wall, then lift and move rightward. Extract the housing with the front panel forward.
 
@@ -84,9 +88,13 @@ Die Emura 3 erfordert vollständigen Gehäuseausbau. Das Frontpanel wird motorge
 
    <a href="img/emura3/02.jpeg"><img src="img/emura3/02.jpeg" width="500" alt="Schraubenpositionen"></a> <a href="img/emura3/03.jpeg"><img src="img/emura3/03.jpeg" width="500" alt="Abdeckungen entfernen"></a>
 
+   *Hinweis: Leitungstyp und Verlegung sind nach lokalen Normen zu prüfen – ggf. ist eine flexible Leitung (z. B. H07RN-F) vorgeschrieben.*
+
 3. **Frontpanel-Kabel trennen** - Den weißen Stecker mit farbigen Kabeln am Riegelmechanismus abziehen.
 
    <a href="img/emura3/04.jpeg"><img src="img/emura3/04.jpeg" width="500" alt="Frontpanel-Kabel"></a>
+
+   *Hinweis: Leitungstyp und Verlegung sind nach lokalen Normen zu prüfen – ggf. ist eine flexible Leitung (z. B. H07RN-F) vorgeschrieben.*
 
 4. **Hauptgehäuse abnehmen** - An drei Haken (links, Mitte, rechts) oben aushängen: gegen die Wand drücken, nach oben heben und nach rechts bewegen. Gehäuse mit Frontpanel nach vorne herausziehen.
 
