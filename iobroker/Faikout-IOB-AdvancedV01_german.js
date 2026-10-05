@@ -171,6 +171,12 @@ var demandCurve = [
     { temp: 15, demand: DEMAND_MIN }
 ];
 
+/***************************************************
+ * =================================================
+ *   AB HIER NICHTS MEHR ÄNDERN
+ * =================================================
+ ***************************************************/
+
 // ZUSTÄNDE
 var lastScheduledSetpoint = null;
 var manualOverrideActive  = false;   // Sollwert-Override
