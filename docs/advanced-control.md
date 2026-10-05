@@ -47,7 +47,7 @@ In the ioBroker Script Adapter, create a new JavaScript script and paste the scr
 - The **alias paths** under `ALIAS` and `SENSOR` — adapt to match your actual ioBroker alias structure.
 - The **settings** such as setpoints, schedule times, and demand curve — adjust to your room and building.
 
-Download: [Faikout-IOB-AdvancedV01_english.js](../iobroker/Faikout-IOB-AdvancedV01_english.js) · [Faikout-IOB-AdvancedV01_german.js](../iobroker/Faikout-IOB-AdvancedV01_german.js)
+Download: [Faikout-IOB-AdvancedV01_english.js](../iobroker/Faikout-IOB-AdvancedV01_english.js)
 
 ---
 
@@ -96,7 +96,7 @@ Im ioBroker Script-Adapter ein neues JavaScript-Skript anlegen und den Skriptinh
 - Die **Alias-Pfade** unter `ALIAS` und `SENSOR` — an die eigene ioBroker-Alias-Struktur anpassen.
 - Die **Einstellungen** wie Sollwerte, Zeitplanzeiten und Heizkennlinie — an Raum und Gebäude anpassen.
 
-Download: [Faikout-IOB-AdvancedV01_german.js](../iobroker/Faikout-IOB-AdvancedV01_german.js) · [Faikout-IOB-AdvancedV01_english.js](../iobroker/Faikout-IOB-AdvancedV01_english.js)
+Download: [Faikout-IOB-AdvancedV01_german.js](../iobroker/Faikout-IOB-AdvancedV01_german.js)
 
 ---
 
