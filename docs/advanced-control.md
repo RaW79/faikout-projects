@@ -30,6 +30,7 @@ The basis for the required heating output is a **characteristic curve (Heizkennl
 | `heatback` | 3°C | When idle, the Daikin target temp is set 3°C below the lower band edge — prevents brief re-triggering |
 | `tempnoflap` | 0s | No minimum interval between setpoint changes — ioBroker demand updates take effect immediately |
 | `lockmode` | active | Faikout thermostat never switches the unit from heat to cool mode automatically — mode control stays with the user |
+| `thermostat` | active | Faikout thermostat mode enabled — the Faikout handles on/off switching based on room temperature |
 
 #### Available Alias Data Points
 
@@ -65,6 +66,7 @@ Grundlage für den erforderlichen Heizbedarf ist eine **Heizkennlinie**, die die
 | `heatback` | 3°C | Im Ruhezustand wird der Daikin-Sollwert 3°C unter die untere Bandgrenze gesetzt – verhindert kurzzeitiges Wiedereinschalten |
 | `tempnoflap` | 0s | Kein Mindestabstand zwischen Sollwertänderungen – ioBroker-Demand-Aktualisierungen wirken sofort |
 | `lockmode` | aktiv | Der Faikout-Thermostat wechselt nie selbstständig von Heizen auf Kühlen – die Modussteuerung verbleibt beim Nutzer |
+| `thermostat` | aktiv | Faikout-Thermostatmodus aktiv – der Faikout übernimmt das Ein- und Ausschalten auf Basis der Raumtemperatur |
 
 #### Verfügbare Alias-Datenpunkte
 
