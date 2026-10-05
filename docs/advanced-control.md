@@ -22,10 +22,6 @@ The approach keeps the Faikout's Auto-Control running in thermostat mode as usua
 
 The basis for the required heating output is a **characteristic curve (Heizkennlinie)** that maps the current outdoor temperature to a suitable demand value — modelling the individual heating load of the room. This curve can and should be adapted to suit your specific building, insulation, and exposure. Additional boost steps handle situations where the room falls significantly behind the target temperature.
 
-Before using the script, two things need to be aligned:
-- The **Faikout base settings** (in particular `autot`, `autor`, `heatback`, `heatover`) must be configured appropriately.
-- The **configuration block at the top of the script** contains all adjustable parameters and must be reviewed before the first run.
-
 #### Faikout Settings Used in This Setup
 
 | Parameter | Value | Effect |
@@ -37,26 +33,7 @@ Before using the script, two things need to be aligned:
 
 #### Available Alias Data Points
 
-All data points are created automatically by the [faikout-iobroker](https://codeberg.org/RaW07/faikout-iobroker) alias generator. The following points are relevant for this script:
-
-| Data point | R/W | Type | Unit | Description |
-|---|---|---|---|---|
-| `power` | R/W | boolean | — | On/Off |
-| `modus` | R/W | string | — | Operating mode: H=Heat, C=Cool, F=Fan, D=Dry, A=Auto |
-| `fanmodus` | R/W | string | — | Fan speed: A=Auto, Q=Quiet, 1–5=Steps |
-| `swingv` | R/W | boolean | — | Vertical swing |
-| `swingh` | R/W | boolean | — | Horizontal swing |
-| `econo` | R/W | boolean | — | Eco mode |
-| `powerful` | R/W | boolean | — | Powerful mode |
-| `demand` | R/W | number | % | Compressor output limit (0–100) |
-| `autot` | R/W | number | °C | Faikout target temperature |
-| `autor` | R/W | number | °C | Faikout hysteresis band |
-| `Aussentemperatur` | R | number | °C | Outdoor temperature (from Daikin outdoor unit) |
-| `Innentemperatur` | R | number | °C | Indoor temperature (from Daikin indoor unit sensor) |
-| `temp` | R | number | °C | Active Daikin setpoint (as reported back by the unit) |
-| `Kaeltemitteltemp` | R | number | °C | Liquid refrigerant temperature |
-| `compressor` | R | number | Hz | Compressor frequency |
-| `Luefter` | R | number | RPM | Indoor fan speed |
+All data points are created automatically by the [faikout-iobroker](https://codeberg.org/RaW07/faikout-iobroker) alias generator.
 
 ---
 
@@ -80,10 +57,6 @@ Der Ansatz lässt den Faikout-Auto-Control weiterhin im Thermostatmodus arbeiten
 
 Grundlage für den erforderlichen Heizbedarf ist eine **Heizkennlinie**, die die aktuelle Außentemperatur auf einen geeigneten Demand-Wert abbildet und damit den individuellen Wärmebedarf des Raumes nachbildet. Diese Kurve kann und sollte an das jeweilige Gebäude, die Dämmung und die Ausrichtung angepasst werden. Zusätzliche Boost-Stufen greifen ein, wenn die Raumtemperatur deutlich unter den Sollwert fällt.
 
-Vor der Nutzung des Skripts sind zwei Dinge abzustimmen:
-- Die **Faikout-Grundeinstellungen** (insbesondere `autot`, `autor`, `heatback`, `heatover`) müssen passend konfiguriert sein.
-- Der **Konfigurationsbereich am Anfang des Skripts** enthält alle anpassbaren Parameter und muss vor dem ersten Start geprüft werden.
-
 #### Verwendete Faikout-Einstellungen
 
 | Parameter | Wert | Wirkung |
@@ -95,26 +68,7 @@ Vor der Nutzung des Skripts sind zwei Dinge abzustimmen:
 
 #### Verfügbare Alias-Datenpunkte
 
-Alle Datenpunkte werden automatisch durch den [faikout-iobroker](https://codeberg.org/RaW07/faikout-iobroker) Alias-Generator angelegt. Für dieses Skript sind folgende Datenpunkte relevant:
-
-| Datenpunkt | R/W | Typ | Einheit | Beschreibung |
-|---|---|---|---|---|
-| `power` | R/W | boolean | — | Ein/Aus |
-| `modus` | R/W | string | — | Betriebsmodus: H=Heizen, C=Kühlen, F=Lüften, D=Entfeuchten, A=Auto |
-| `fanmodus` | R/W | string | — | Lüfterdrehzahl: A=Auto, Q=Leise, 1–5=Stufen |
-| `swingv` | R/W | boolean | — | Vertikales Schwingen |
-| `swingh` | R/W | boolean | — | Horizontales Schwingen |
-| `econo` | R/W | boolean | — | Eco-Modus |
-| `powerful` | R/W | boolean | — | Powerful-Modus |
-| `demand` | R/W | number | % | Kompressorleistungsbegrenzung (0–100) |
-| `autot` | R/W | number | °C | Faikout-Solltemperatur |
-| `autor` | R/W | number | °C | Faikout-Hysteresebandbreite |
-| `Aussentemperatur` | R | number | °C | Außentemperatur (vom Daikin-Außengerät) |
-| `Innentemperatur` | R | number | °C | Innentemperatur (vom Daikin-Innengerätesensor) |
-| `temp` | R | number | °C | Aktiver Daikin-Sollwert (wie vom Gerät zurückgemeldet) |
-| `Kaeltemitteltemp` | R | number | °C | Flüssigkeitsseitige Kältemitteltemperatur |
-| `compressor` | R | number | Hz | Kompressorfrequenz |
-| `Luefter` | R | number | RPM | Innengeräte-Lüfterdrehzahl |
+Alle Datenpunkte werden automatisch durch den [faikout-iobroker](https://codeberg.org/RaW07/faikout-iobroker) Alias-Generator angelegt.
 
 ---
 
