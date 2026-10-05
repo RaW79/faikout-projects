@@ -53,7 +53,37 @@ Download: [Faikout-IOB-AdvancedV01_english.js](../iobroker/Faikout-IOB-AdvancedV
 
 ### Home Assistant
 
-coming soon
+The Home Assistant implementation uses a **Blueprint** that creates an automation with the same core logic as the ioBroker script. It is designed to work with the MQTT HVAC integration provided by Faikout.
+
+> **Note:** This Blueprint is currently in **Beta**. It covers the core demand control logic (outdoor curve, room correction, ramping, overheat protection) but does not yet include schedule-based on/off switching — use Home Assistant's native schedule automations for that.
+
+> **Note:** This Blueprint is designed exclusively for **heating mode**. It only runs when the climate entity is in `heat` state.
+
+#### Inputs
+
+| Parameter | Description | Default |
+|---|---|---|
+| Klimagerät | Climate entity (MQTT HVAC) | — |
+| Raumtemperatur | Room temperature sensor | — |
+| Außentemperatur | Outdoor temperature sensor | — |
+| Demand Select | Demand control select entity | — |
+| Heizkurve | Outdoor curve as JSON array `[[outdoor_temp, demand], ...]` | `[[-10,70],[-5,60],[0,55],[5,50],[10,40],[15,30]]` |
+| Raumkorrektur | Room correction curve as JSON array `[[diff, correction], ...]` | `[[-0.5,-10],[-0.2,-5],[0,0],[0.5,5],[1.0,10]]` |
+| Maximaler Demand-Änderung pro Zyklus | Max demand change per cycle (ramping) | 5 % |
+| Minimal Demand | Lower demand limit | 30 |
+| Maximal Demand | Upper demand limit | 100 |
+| Überheizschutz | Overheat threshold (Soll − Ist) | −0.4 °C |
+
+The **Heizkurve** maps outdoor temperature to a base demand value and should be adapted to your building's heating load. The **Raumkorrektur** adds a correction based on how far the room temperature is from the setpoint. Ramping limits how fast the demand can change per cycle to avoid abrupt compressor steps.
+
+#### Installation
+
+1. In Home Assistant go to **Settings → Blueprints → Import Blueprint**
+2. Use the raw file URL from Codeberg, or copy the YAML file manually to `/config/blueprints/automation/faikout/`
+3. Reload Blueprints, then create a new automation from the Blueprint
+4. Assign your Faikout entities and adjust curves to your setup
+
+Download: [Faikout-HA-DemandHybridV01.yaml](../homeassistant/Faikout-HA-DemandHybridV01.yaml)
 
 ---
 
@@ -102,4 +132,34 @@ Download: [Faikout-IOB-AdvancedV01_german.js](../iobroker/Faikout-IOB-AdvancedV0
 
 ### Home Assistant
 
-coming soon
+Die Home-Assistant-Implementierung nutzt ein **Blueprint**, das eine Automation mit derselben Kernlogik wie das ioBroker-Skript erzeugt. Es ist für die MQTT-HVAC-Integration von Faikout ausgelegt.
+
+> **Hinweis:** Dieses Blueprint befindet sich derzeit in der **Beta**. Es enthält die komplette Demand-Regelungslogik (Heizkennlinie, Raumkorrektur, Ramping, Überheizschutz), aber noch keine zeitplanbasierte Ein-/Ausschaltung — dafür die nativen Zeitplan-Automationen von Home Assistant nutzen.
+
+> **Hinweis:** Dieses Blueprint ist ausschließlich für den **Heizbetrieb** ausgelegt. Es wird nur aktiv, wenn die Klimaentität im Zustand `heat` ist.
+
+#### Eingaben
+
+| Parameter | Beschreibung | Standard |
+|---|---|---|
+| Klimagerät | Klimaentität (MQTT HVAC) | — |
+| Raumtemperatur | Raumtemperatursensor | — |
+| Außentemperatur | Außentemperatursensor | — |
+| Demand Select | Demand-Control-Select-Entität | — |
+| Heizkurve | Außenkennlinie als JSON-Array `[[Außentemp, Demand], ...]` | `[[-10,70],[-5,60],[0,55],[5,50],[10,40],[15,30]]` |
+| Raumkorrektur | Raumkorrekturkurve als JSON-Array `[[Diff, Korrektur], ...]` | `[[-0.5,-10],[-0.2,-5],[0,0],[0.5,5],[1.0,10]]` |
+| Maximaler Demand-Änderung pro Zyklus | Maximale Demand-Änderung pro Zyklus (Ramping) | 5 % |
+| Minimal Demand | Untere Demand-Grenze | 30 |
+| Maximal Demand | Obere Demand-Grenze | 100 |
+| Überheizschutz | Überheizschutz-Schwelle (Soll − Ist) | −0,4 °C |
+
+Die **Heizkurve** bildet die Außentemperatur auf einen Basis-Demand-Wert ab und sollte an den Wärmebedarf des eigenen Gebäudes angepasst werden. Die **Raumkorrektur** addiert einen Aufschlag je nach Abweichung der Raumtemperatur vom Sollwert. Das Ramping begrenzt, wie schnell sich der Demand pro Zyklus ändern darf, um abrupte Kompressorsprünge zu vermeiden.
+
+#### Installation
+
+1. In Home Assistant unter **Einstellungen → Blueprints → Blueprint importieren**
+2. Die Raw-URL von Codeberg verwenden, oder die YAML-Datei manuell nach `/config/blueprints/automation/faikout/` kopieren
+3. Blueprints neu laden, dann eine neue Automation aus dem Blueprint erstellen
+4. Faikout-Entitäten zuweisen und Kurven an das eigene Setup anpassen
+
+Download: [Faikout-HA-DemandHybridV01.yaml](../homeassistant/Faikout-HA-DemandHybridV01.yaml)
