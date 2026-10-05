@@ -16,7 +16,7 @@ Advanced control scripts and integrations for automating Faikout-based Daikin sy
 
 ### ioBroker
 
-Modern Daikin units support a **demand control** feature that allows the compressor output to be actively limited — a capability that is neither exposed by the standard Daikin interface nor utilised by the Faikout's built-in thermostat mode. This script unlocks that potential from ioBroker.
+Modern Daikin units support a **demand control** feature that allows the compressor output to be actively limited — a capability that is neither conveniently nor automatically usable through the standard Daikin interface, nor taken into account by the Faikout in any control loop. This script unlocks that potential from ioBroker.
 
 The approach keeps the Faikout's Auto-Control running in thermostat mode as usual, handling on/off switching based on room temperature. On top of that, ioBroker continuously adjusts the unit's heating demand (compressor output in %) to achieve the smoothest and most efficient operation possible: the system runs longer at lower output rather than cycling on and off at full power.
 
@@ -42,7 +42,7 @@ Erweiterte Regelungsskripte und Integrationen zur Automatisierung Faikout-basier
 
 ### ioBroker
 
-Moderne Daikin-Geräte unterstützen eine **Bedarfsregelung (Demand Control)**, mit der die Kompressorleistung aktiv begrenzt werden kann – eine Funktion, die weder über die Standard-Daikin-Schnittstelle zugänglich ist noch vom integrierten Faikout-Thermostatmodus genutzt wird. Dieses Skript erschließt dieses Potenzial aus ioBroker heraus.
+Moderne Daikin-Geräte unterstützen eine **Bedarfsregelung (Demand Control)**, mit der die Kompressorleistung aktiv begrenzt werden kann – eine Funktion, die weder über die Standard-Daikin-Schnittstelle komfortabel und automatisiert nutzbar ist noch vom Faikout in eine Regelung berücksichtigt wird. Dieses Skript erschließt dieses Potenzial aus ioBroker heraus.
 
 Der Ansatz lässt den Faikout-Auto-Control weiterhin im Thermostatmodus arbeiten – er übernimmt wie gewohnt das Ein- und Ausschalten auf Basis der Raumtemperatur. Zusätzlich passt ioBroker den Heiz-Demand (Kompressorleistung in %) kontinuierlich an, um einen möglichst gleichmäßigen und sparsamen Betrieb zu erreichen: Die Anlage läuft länger auf niedrigerer Leistung, anstatt mit voller Leistung zu takten.
 
