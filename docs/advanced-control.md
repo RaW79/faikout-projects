@@ -15,7 +15,7 @@
 Advanced control scripts and integrations for automating Faikout-based Daikin systems beyond the built-in thermostat mode.
 
 - [ioBroker](#iobroker)
-- Home Assistant *(coming soon)*
+- [Home Assistant](#home-assistant)
 
 ### ioBroker
 
@@ -85,6 +85,8 @@ The **Heizkurve** maps outdoor temperature to a base demand value and should be 
 
 Download: [Faikout-HA-DemandHybridV01.yaml](../homeassistant/Faikout-HA-DemandHybridV01.yaml)
 
+![Blueprint configuration](img/ha-blueprint-hybrid.png)
+
 ---
 
 ## Deutsch
@@ -94,7 +96,7 @@ Download: [Faikout-HA-DemandHybridV01.yaml](../homeassistant/Faikout-HA-DemandHy
 Erweiterte Regelungsskripte und Integrationen zur Automatisierung Faikout-basierter Daikin-Systeme über den integrierten Thermostatmodus hinaus.
 
 - [ioBroker](#iobroker-1)
-- Home Assistant *(coming soon)*
+- [Home Assistant](#home-assistant-1)
 
 ### ioBroker
 
@@ -163,3 +165,5 @@ Die **Heizkurve** bildet die Außentemperatur auf einen Basis-Demand-Wert ab und
 4. Faikout-Entitäten zuweisen und Kurven an das eigene Setup anpassen
 
 Download: [Faikout-HA-DemandHybridV01.yaml](../homeassistant/Faikout-HA-DemandHybridV01.yaml)
+
+![Blueprint-Konfiguration](img/ha-blueprint-hybrid.png)
