@@ -14,6 +14,9 @@
 
 Advanced control scripts and integrations for automating Faikout-based Daikin systems beyond the built-in thermostat mode.
 
+- [ioBroker](#iobroker)
+- Home Assistant *(coming soon)*
+
 ### ioBroker
 
 Modern Daikin units support a **demand control** feature that allows the compressor output to be actively limited — a capability that is neither conveniently nor automatically usable through the standard Daikin interface, nor taken into account by the Faikout in any control loop. This script unlocks that potential from ioBroker.
@@ -48,7 +51,7 @@ Download: [Faikout-IOB-AdvancedV01_english.js](../iobroker/Faikout-IOB-AdvancedV
 
 ---
 
-### openHAB
+### Home Assistant
 
 coming soon
 
@@ -59,6 +62,9 @@ coming soon
 *Dieser Leitfaden basiert auf persönlichen Erfahrungen und erhebt keinen Anspruch auf Vollständigkeit oder Fehlerfreiheit.*
 
 Erweiterte Regelungsskripte und Integrationen zur Automatisierung Faikout-basierter Daikin-Systeme über den integrierten Thermostatmodus hinaus.
+
+- [ioBroker](#iobroker-1)
+- Home Assistant *(coming soon)*
 
 ### ioBroker
 
@@ -94,6 +100,6 @@ Download: [Faikout-IOB-AdvancedV01_german.js](../iobroker/Faikout-IOB-AdvancedV0
 
 ---
 
-### openHAB
+### Home Assistant
 
 coming soon
