@@ -1,5 +1,5 @@
 /***************************************************
- * DAIKIN Alias-Regelung v7 — Übergangszeit-tauglich
+ * DAIKIN Alias-Regelung V01 — Übergangszeit-tauglich
  * ==================================================
  *
  * ZWECK
@@ -581,4 +581,4 @@ function initOnStart() {
 
 initOnStart();
 schedule("* * * * *", checkSchedule);
-log("DAIKIN Regelung v7 gestartet");
+log("DAIKIN Regelung V01 gestartet");

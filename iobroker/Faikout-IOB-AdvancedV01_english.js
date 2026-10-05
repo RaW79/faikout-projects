@@ -1,5 +1,5 @@
 /***************************************************
- * DAIKIN Alias Control v7 — Suitable for Transitional Seasons
+ * DAIKIN Alias Control V01 — Suitable for Transitional Seasons
  * ==================================================
  *
  * PURPOSE
@@ -577,4 +577,4 @@ function initOnStart() {
 
 initOnStart();
 schedule("* * * * *", checkSchedule);
-log("DAIKIN Control v7 started");
+log("DAIKIN Control V01 started");
