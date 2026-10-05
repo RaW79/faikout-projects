@@ -36,6 +36,14 @@ The basis for the required heating output is a **characteristic curve (Heizkennl
 
 All data points are created automatically by the [faikout-iobroker](https://codeberg.org/RaW07/faikout-iobroker) alias generator.
 
+#### Installation
+
+In the ioBroker Script Adapter, create a new JavaScript script and paste the script content. Only two things need to be adjusted in the configuration block at the top of the script:
+- The **alias paths** under `ALIAS` and `SENSOR` — adapt to match your actual ioBroker alias structure.
+- The **settings** such as setpoints, schedule times, and demand curve — adjust to your room and building.
+
+Download: [Faikout-IOB-AdvancedV01_english.js](../iobroker/Faikout-IOB-AdvancedV01_english.js) · [Faikout-IOB-AdvancedV01_german.js](../iobroker/Faikout-IOB-AdvancedV01_german.js)
+
 ---
 
 ### openHAB
@@ -71,6 +79,14 @@ Grundlage für den erforderlichen Heizbedarf ist eine **Heizkennlinie**, die die
 #### Verfügbare Alias-Datenpunkte
 
 Alle Datenpunkte werden automatisch durch den [faikout-iobroker](https://codeberg.org/RaW07/faikout-iobroker) Alias-Generator angelegt.
+
+#### Installation
+
+Im ioBroker Script-Adapter ein neues JavaScript-Skript anlegen und den Skriptinhalt einfügen. Im Konfigurationsbereich am Anfang des Skripts sind nur zwei Dinge anzupassen:
+- Die **Alias-Pfade** unter `ALIAS` und `SENSOR` — an die eigene ioBroker-Alias-Struktur anpassen.
+- Die **Einstellungen** wie Sollwerte, Zeitplanzeiten und Heizkennlinie — an Raum und Gebäude anpassen.
+
+Download: [Faikout-IOB-AdvancedV01_german.js](../iobroker/Faikout-IOB-AdvancedV01_german.js) · [Faikout-IOB-AdvancedV01_english.js](../iobroker/Faikout-IOB-AdvancedV01_english.js)
 
 ---
 
