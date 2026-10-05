@@ -106,8 +106,8 @@ Weitere Informationen zum Faikout selbst: [codeberg.org/RevK/ESP32-Faikout](http
 - [Xiaomi Mijia T&H Monitor 2 (LYWSD03MMC)](docs/ble-sensor.md#deutsch)
 - [Xiaomi Mijia T&H Monitor 3 Mini (MJWSD06MMC)](docs/ble-sensor.md#mjwsd06mmc-deutsch)
 
-**More Advanced Control**
-- [Advanced control for several automation systems](docs/advanced-control.md)
+**Erweiterte Regelung**
+- [Erweiterte Regelung für verschiedene Automationssysteme](docs/advanced-control.md)
 
 </td></tr></table>
 
