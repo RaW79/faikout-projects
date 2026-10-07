@@ -65,7 +65,7 @@ Ready-to-import **Node-RED flow** for universal MQTT integration. Covers all sta
 #### faikout-Modifications
 Rough Faikout firmware modifications to fulfill individual demands. No ongoing support or maintenance.
 
-→ [faikout-Modifications (this repo)](https://codeberg.org/RaW07/faikout-projects/src/branch/main/faikout-Modifications)
+→ [codeberg.org/RaW07/faikout-Modifications](https://codeberg.org/RaW07/faikout-Modifications)
 
 #### ESP32-Faikout-ETH01EVO
 Firmware fork adding early Ethernet support via the **ESP32-C3 ETH01 EVO** board. Created at a time when the Faikout had no Ethernet solution yet.
