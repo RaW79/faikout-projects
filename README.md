@@ -63,7 +63,7 @@ Ready-to-import **Node-RED flow** for universal MQTT integration. Covers all sta
 → [codeberg.org/RaW07/faikout-openccu](https://codeberg.org/RaW07/faikout-openccu)
 
 #### faikout-Modifications
-Firmware modification for the **ESP32-S3-N16R8** (Ola devboard) adding 5 configurable additional GPIOs (input/output) with names, web UI controls, and MQTT integration. Includes a custom "Ola-GPIO-Mod" settings tab and real-time status on the main page. Auto-OTA disabled to prevent overwriting the modified firmware.
+Rough Faikout firmware modifications to fulfill individual demands. No ongoing support or maintenance.
 
 → [faikout-Modifications (this repo)](https://codeberg.org/RaW07/faikout-projects/src/branch/main/faikout-Modifications)
 
@@ -136,7 +136,7 @@ Importfertiger **Node-RED Flow** für universelle MQTT-Anbindung. Enthält alle 
 → [codeberg.org/RaW07/faikout-openccu](https://codeberg.org/RaW07/faikout-openccu)
 
 #### faikout-Modifications
-Firmware-Modifikation für den **ESP32-S3-N16R8** (Ola-Devboard) mit 5 konfigurierbaren zusätzlichen GPIOs (Ein-/Ausgang) inkl. Namen, Web-UI-Steuerung und MQTT-Integration. Enthält einen eigenen Tab "Ola-GPIO-Mod" in den Einstellungen sowie Echtzeit-Statusanzeige auf der Hauptseite. Auto-OTA deaktiviert, um das modifizierte Firmware nicht zu überschreiben.
+Grobe Faikout-Firmware-Modifikationen für individuelle Anforderungen. Kein laufender Support oder Pflege.
 
 → [faikout-Modifications (dieses Repo)](https://codeberg.org/RaW07/faikout-projects/src/branch/main/faikout-Modifications)
 
