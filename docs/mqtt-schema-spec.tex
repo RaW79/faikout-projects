@@ -1,0 +1,966 @@
+\documentclass[11pt,a4paper]{article}
+
+% ── Encoding & Fonts ──────────────────────────────────────────────
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+
+% ── Page Layout ───────────────────────────────────────────────────
+\usepackage[a4paper, top=25mm, bottom=25mm, left=25mm, right=25mm,
+            headheight=15pt]{geometry}
+
+% ── Colour Palette ────────────────────────────────────────────────
+\usepackage[dvipsnames]{xcolor}
+\definecolor{primary}{HTML}{1A3A5C}   % dark navy
+\definecolor{accent}{HTML}{2E7DC4}    % mid blue
+\definecolor{lightbg}{HTML}{F0F4F8}   % table row bg
+\definecolor{codered}{HTML}{C0392B}
+\definecolor{codegreen}{HTML}{27AE60}
+\definecolor{codegray}{HTML}{7F8C8D}
+\definecolor{codebg}{HTML}{F8F9FA}
+
+% ── Headers & Footers ─────────────────────────────────────────────
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\color{codegray}\textsc{FAIKOUT-SPEC-MQTT-SCHEMA-001}}
+\fancyhead[R]{\small\color{codegray}Draft 0.2 · September 2026}
+\fancyfoot[C]{\small\color{codegray}\thepage}
+\renewcommand{\headrulewidth}{0.3pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% ── Section Formatting ────────────────────────────────────────────
+\usepackage{titlesec}
+\titleformat{\section}
+  {\Large\bfseries\color{primary}}
+  {\thesection}{1em}{}
+  [\vspace{2pt}\color{accent}\titlerule[1pt]\vspace{4pt}]
+
+\titleformat{\subsection}
+  {\large\bfseries\color{primary}}
+  {\thesubsection}{1em}{}
+
+\titleformat{\subsubsection}
+  {\normalsize\bfseries\color{accent}}
+  {\thesubsubsection}{1em}{}
+
+% ── Table of Contents ─────────────────────────────────────────────
+\usepackage{tocloft}
+\renewcommand{\cftsecfont}{\bfseries\color{primary}}
+\renewcommand{\cftsecpagefont}{\bfseries\color{primary}}
+\setlength{\cftbeforesecskip}{4pt}
+
+% ── Tables ────────────────────────────────────────────────────────
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{colortbl}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
+\newcolumntype{R}[1]{>{\raggedleft\arraybackslash}p{#1}}
+
+% ── Code Listings ─────────────────────────────────────────────────
+\usepackage{listings}
+\lstdefinestyle{json}{
+  backgroundcolor=\color{codebg},
+  basicstyle=\ttfamily\small,
+  breakatwhitespace=false,
+  breaklines=true,
+  captionpos=b,
+  frame=single,
+  rulecolor=\color{accent!40},
+  framesep=6pt,
+  xleftmargin=10pt,
+  xrightmargin=10pt,
+  showstringspaces=false,
+  stringstyle=\color{codegreen},
+  keywordstyle=\color{accent},
+  commentstyle=\color{codegray},
+  numbers=none,
+  tabsize=2
+}
+\lstdefinestyle{inline}{
+  basicstyle=\ttfamily\small,
+  backgroundcolor=\color{codebg},
+  frame=none
+}
+\lstset{style=json}
+
+% ── Misc Packages ─────────────────────────────────────────────────
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{amsmath}
+\usepackage{mdframed}
+\usepackage{parskip}
+\setlength{\parskip}{6pt}
+\setlength{\parindent}{0pt}
+
+% ── Hyperlinks ────────────────────────────────────────────────────
+\usepackage[hidelinks, colorlinks=true,
+            linkcolor=primary, urlcolor=accent,
+            citecolor=accent]{hyperref}
+
+% ── Custom Environments ───────────────────────────────────────────
+\newmdenv[
+  backgroundcolor=lightbg,
+  linecolor=accent,
+  linewidth=2pt,
+  leftline=true, rightline=false, topline=false, bottomline=false,
+  innerleftmargin=10pt, innerrightmargin=10pt,
+  innertopmargin=8pt, innerbottommargin=8pt,
+  skipabove=8pt, skipbelow=8pt
+]{infobox}
+
+\newmdenv[
+  backgroundcolor=codered!8,
+  linecolor=codered,
+  linewidth=2pt,
+  leftline=true, rightline=false, topline=false, bottomline=false,
+  innerleftmargin=10pt, innerrightmargin=10pt,
+  innertopmargin=8pt, innerbottommargin=8pt,
+  skipabove=8pt, skipbelow=8pt
+]{warnbox}
+
+% ── Helper Commands ───────────────────────────────────────────────
+\newcommand{\req}[1]{\textbf{\color{primary}#1}}
+\newcommand{\must}{\textbf{MUST}}
+\newcommand{\should}{\textbf{SHOULD}}
+\newcommand{\may}{\textbf{MAY}}
+\newcommand{\topic}[1]{\texttt{\color{accent}#1}}
+\newcommand{\field}[1]{\texttt{\color{codegreen}#1}}
+\newcommand{\param}[1]{\texttt{\color{primary}#1}}
+\newcommand{\reqid}[1]{\textbf{\texttt{#1}}}
+
+% ══════════════════════════════════════════════════════════════════
+\begin{document}
+
+% ── Cover Page ────────────────────────────────────────────────────
+\begin{titlepage}
+  \pagecolor{primary}
+  \color{white}
+  \vspace*{30mm}
+
+  {\fontsize{11}{13}\selectfont\color{accent!70}\texttt{FAIKOUT-SPEC-MQTT-SCHEMA-001 · Draft 0.2}}
+
+  \vspace{8mm}
+  {\fontsize{28}{34}\selectfont\bfseries MQTT Generic Device\\[4pt]Schema Publication}
+
+  \vspace{6mm}
+  {\fontsize{16}{20}\selectfont\color{white!80}Specification for machine-readable MQTT capability\\description enabling automated platform integration}
+
+  \vspace{16mm}
+  \color{accent!50}\rule{\textwidth}{0.5pt}
+  \vspace{6mm}
+
+  \begin{tabular}{@{}ll}
+    \textbf{Document ID} & \texttt{FAIKOUT-SPEC-MQTT-SCHEMA-001} \\[4pt]
+    \textbf{Revision}    & Draft 0.2 \\[4pt]
+    \textbf{Date}        & September 2026 \\[4pt]
+    \textbf{Author}      & RaW07 \\[4pt]
+    \textbf{Status}      & Draft – For Review \\[4pt]
+    \textbf{Issue}       & codeberg.org/revk/ESP32-Faikout/issues/1085 \\
+  \end{tabular}
+
+  \vspace{16mm}
+  \color{accent!50}\rule{\textwidth}{0.5pt}
+  \vspace{6mm}
+
+  {\small\color{white!60}
+  Motivated by real-world deployments across ioBroker, openHAB, Node-RED and\\
+  Homematic CCU — four independent integrations that each reinvent feature detection.}
+
+  \vfill
+  {\small\color{white!40}Part of the Faikout Projects ecosystem · codeberg.org/RaW07/faikout-projects}
+\end{titlepage}
+\pagecolor{white}
+\color{black}
+
+% ── Table of Contents ─────────────────────────────────────────────
+\setcounter{page}{1}
+\tableofcontents
+\newpage
+
+% ══════════════════════════════════════════════════════════════════
+\section{Abstract}
+
+This document specifies a mechanism by which MQTT-connected embedded devices may publish a machine-readable description of their operational capabilities, available data fields, data types, value constraints, and command interface to a well-known retained MQTT topic — hereinafter referred to as the \emph{Schema Topic}.
+
+The primary objective is to enable automation platforms, integration frameworks, and third-party software systems to autonomously discover and configure device integrations at runtime, without prior knowledge of device-specific topic structures or payload schemas. A conforming implementation eliminates the requirement for static, manually maintained configuration in consumer software.
+
+This specification is explicitly platform-agnostic. While the motivating use case is the Faikout HVAC controller firmware (ESP32-based, RevK framework), the schema format defined herein is applicable to any MQTT-publishing device without modification.
+
+% ══════════════════════════════════════════════════════════════════
+\section{Introduction}
+
+\subsection{The Fragmentation Problem in Practice}
+
+The Faikout HVAC controller publishes status data as a JSON object to \topic{state/\textless device-id\textgreater/status} and accepts commands on multiple \topic{command/\textless device-id\textgreater/\textless topic\textgreater} paths. As of September 2026, four independent integrations exist for non-Home-Assistant platforms — each implementing its own feature-detection logic:
+
+\vspace{4pt}
+\begin{tabularx}{\textwidth}{@{}lLl@{}}
+\toprule
+\textbf{Platform} & \textbf{Current approach} & \textbf{Source file} \\
+\midrule
+\rowcolor{lightbg}
+ioBroker & Generator script scrapes Faikout HTTP interface; detects active fields via \texttt{o.fieldname} pattern & \texttt{faikout\_alias\_generator\_en.js} \\
+openHAB & Startup rule queries \texttt{/api} HTTP endpoint; creates Things/Items/Links via REST API & \texttt{faikout\_generator.js} \\
+\rowcolor{lightbg}
+Node-RED & Import-ready flow; manual device ID configuration; diagnostics group & \texttt{faikout-nodered-flow.json} \\
+openCCU & Node-RED on Redmatic; maps MQTT fields to CCU system variables; idempotent setup button & \texttt{faikout-flow.json} \\
+\bottomrule
+\end{tabularx}
+\vspace{4pt}
+
+All four independently query the Faikout HTTP interface to detect active features. A published MQTT schema topic eliminates this dependency entirely.
+
+\subsection{The Home Assistant Discovery Problem}
+
+Home Assistant's MQTT Discovery protocol is unsuitable as a generic device description mechanism:
+
+\begin{itemize}[noitemsep]
+  \item \textbf{Tight coupling to HA entity model:} Payload references HA-specific entity types (\texttt{climate}, \texttt{sensor}, \texttt{switch}) that have no portable equivalent.
+  \item \textbf{Component-centric:} One discovery message per entity — 17+ publications for a single device vs. one schema document.
+  \item \textbf{HA-specific templates:} \texttt{value\_template} uses Jinja2 syntax, not portable to other platforms.
+  \item \textbf{No writability declaration:} Writability is implied by the presence of \texttt{command\_topic} per entity, not as a machine-readable field attribute.
+\end{itemize}
+
+\subsection{Existing Standards Evaluated}
+
+\begin{description}[leftmargin=2cm, style=nextline]
+  \item[Homie v4.0] Requires approx.\ 175 MQTT topics for 35 fields. Overhead disproportionate for constrained firmware.
+  \item[W3C WoT TD] Comprehensive semantic model with JSON-LD encoding. Requires a JSON-LD processor — unreasonable for lightweight integrations.
+  \item[AsyncAPI] Design-time documentation format, not a runtime MQTT discovery mechanism.
+\end{description}
+
+None of the evaluated standards is suitable. This specification defines a minimal, self-contained format optimised for embedded firmware and immediate consumer utility.
+
+\subsection{Prototype Evidence}
+
+This specification is grounded in a working prototype validated on real hardware. Codeberg issue \href{https://codeberg.org/revk/ESP32-Faikout/issues/1085}{revk/ESP32-Faikout\#1085} (opened 2026-08-23) documents the implementation of a \texttt{send\_mqtt\_schema()} function in the Faikout firmware.
+
+\begin{infobox}
+\textbf{Prototype device:} \texttt{90706931486C} — Faikout-S3-MINI-N8, MQTT connected\\
+\textbf{Firmware setting implemented:} \emph{``MQTT schema topic''} — ``Publish MQTT schema topic'' [toggle: enabled]\\
+\textbf{Confirmed independent from:} Home Assistant Discovery toggle (separately disabled on same device)
+\end{infobox}
+
+% ══════════════════════════════════════════════════════════════════
+\section{Terminology}
+
+\begin{description}[leftmargin=3.5cm, style=sameline, font=\normalfont\ttfamily]
+  \item[Schema Topic]   The MQTT topic \topic{state/\textless id\textgreater/schema} to which the device publishes its schema payload.
+  \item[Status Topic]   The MQTT topic \topic{state/\textless id\textgreater/status} on which the device publishes status JSON.
+  \item[Command Topic]  The MQTT topic(s) on which the device receives commands (\topic{command/\textless id\textgreater/control} and per-field subtopics).
+  \item[Device ID]      Unique device identifier used across all MQTT topics (typically MAC address, e.g.\ \texttt{9C139EEF6D28}).
+  \item[Field]          A discrete data point exposed by the device, described by a field descriptor object.
+  \item[Consumer]       Any software system subscribing to the Schema Topic to build an integration.
+  \item[Retained]       MQTT retain flag — broker stores and delivers the message immediately to future subscribers.
+\end{description}
+
+% ══════════════════════════════════════════════════════════════════
+\section{Requirements Overview}
+
+\subsection{Device Requirements}
+
+\begin{tabularx}{\textwidth}{@{}lXl@{}}
+\toprule
+\textbf{ID} & \textbf{Requirement} & \textbf{Priority} \\
+\midrule
+\rowcolor{lightbg}
+\reqid{D-REQ-001} & The device \must{} publish a schema payload to the Schema Topic upon MQTT broker connection & MANDATORY \\
+\reqid{D-REQ-002} & The schema payload \must{} be published with the MQTT retained flag set & MANDATORY \\
+\rowcolor{lightbg}
+\reqid{D-REQ-003} & The schema payload \must{} be valid UTF-8 encoded JSON & MANDATORY \\
+\reqid{D-REQ-004} & The schema \must{} include only fields currently active on the device & MANDATORY \\
+\rowcolor{lightbg}
+\reqid{D-REQ-005} & The device \must{} republish the schema on each MQTT reconnection & MANDATORY \\
+\reqid{D-REQ-006} & Schema publication \must{} occur before the first status payload publication & MANDATORY \\
+\rowcolor{lightbg}
+\reqid{D-REQ-007} & The device \should{} support a configuration parameter to disable schema publication & RECOMMENDED \\
+\reqid{D-REQ-008} & The schema payload \should{} not exceed 4096 bytes & RECOMMENDED \\
+\rowcolor{lightbg}
+\reqid{D-REQ-009} & Schema publication \must{} use QoS\,1 or higher & MANDATORY \\
+\bottomrule
+\end{tabularx}
+
+\subsection{Consumer Requirements}
+
+\begin{tabularx}{\textwidth}{@{}lXl@{}}
+\toprule
+\textbf{ID} & \textbf{Requirement} & \textbf{Priority} \\
+\midrule
+\rowcolor{lightbg}
+\reqid{C-REQ-001} & A consumer \must{} not assume the presence of any field not listed in the schema & MANDATORY \\
+\reqid{C-REQ-002} & A consumer \must{} treat unknown field types gracefully without aborting & MANDATORY \\
+\rowcolor{lightbg}
+\reqid{C-REQ-003} & A consumer \must{} not issue commands to fields where \texttt{rw} is \texttt{false} & MANDATORY \\
+\reqid{C-REQ-004} & A consumer \should{} validate command values against \texttt{values}, \texttt{min}, \texttt{max} & RECOMMENDED \\
+\rowcolor{lightbg}
+\reqid{C-REQ-005} & A consumer \must{} handle schema updates via retained message republication & MANDATORY \\
+\bottomrule
+\end{tabularx}
+
+% ══════════════════════════════════════════════════════════════════
+\section{Schema Topic}
+
+\subsection{Topic Structure}
+
+A conforming device \must{} publish its schema to:
+
+\begin{center}
+  \large\ttfamily\color{accent}
+  state/\textit{\textless device-identifier\textgreater}/schema
+\end{center}
+
+The \texttt{\textit{device-identifier}} \must{} be identical to the identifier used in status and command topics.
+
+\vspace{4pt}
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Device Identifier} & \textbf{Schema Topic} \\
+\midrule
+\rowcolor{lightbg}
+\texttt{9C139EEF6D28} & \topic{state/9C139EEF6D28/schema} \\
+\texttt{90706931486C} & \topic{state/90706931486C/schema} \\
+\bottomrule
+\end{tabular}
+\vspace{4pt}
+
+\textbf{Rationale:} The Faikout firmware publishes status to \topic{state/\textless id\textgreater/status}. Placing the schema under the same prefix makes wildcard subscriptions straightforward: \topic{state/+/schema} discovers all devices; \topic{state/+/status} delivers all status data.
+
+\subsection{Publication Sequence}
+
+\begin{lstlisting}[style=json, language={}]
+1. Device establishes TCP connection to broker
+2. Device sends MQTT CONNECT
+3. Broker acknowledges with CONNACK
+4. Device publishes schema payload (retained, QoS 1) --> state/<id>/schema
+5. Device begins publishing status payloads          --> state/<id>/status
+6. Device subscribes to command topics               --> command/<id>/control
+                                                         command/<id>/mode
+                                                         command/<id>/fan  ...
+\end{lstlisting}
+
+Deviation from this sequence — specifically publishing status before schema — is a conformance violation.
+
+% ══════════════════════════════════════════════════════════════════
+\section{Schema Payload Format}
+
+\subsection{Top-Level Structure}
+
+\begin{lstlisting}[style=json]
+{
+  "spec":    "FAIKOUT-SPEC-MQTT-SCHEMA-001/0.2",
+  "model":   "Faikout-S3-MINI-N8",
+  "version": "2026-08-14T16:21:44",
+  "status":  "state/<device-id>/status",
+  "command": "command/<device-id>/control",
+  "fields":  [ <field-descriptor>, ... ]
+}
+\end{lstlisting}
+
+\begin{tabularx}{\textwidth}{@{}lllX@{}}
+\toprule
+\textbf{Property} & \textbf{Type} & \textbf{Required} & \textbf{Description} \\
+\midrule
+\rowcolor{lightbg}
+\texttt{status}  & string & MANDATORY    & Full topic of status JSON publications \\
+\texttt{command} & string & MANDATORY    & Primary JSON command topic \\
+\rowcolor{lightbg}
+\texttt{fields}  & array  & MANDATORY    & Ordered list of field descriptor objects (active fields only) \\
+\texttt{spec}    & string & RECOMMENDED  & Specification version identifier \\
+\rowcolor{lightbg}
+\texttt{model}   & string & RECOMMENDED  & Human-readable device model \\
+\texttt{version} & string & RECOMMENDED  & Firmware version; enables update detection \\
+\bottomrule
+\end{tabularx}
+
+\subsection{Field Descriptor Object}
+
+\begin{lstlisting}[style=json]
+{
+  "key":          "<field-key>",
+  "type":         "bool" | "number" | "string",
+  "rw":           true | false,
+  "label":        "<human-readable-label>",
+  "commandTopic": "<full-mqtt-topic>",
+  "values":       [ "<value>", ... ],
+  "min":          <number>,
+  "max":          <number>,
+  "unit":         "<unit-string>"
+}
+\end{lstlisting}
+
+\begin{tabularx}{\textwidth}{@{}llllX@{}}
+\toprule
+\textbf{Property} & \textbf{Type} & \textbf{Required} & \textbf{Source} & \textbf{Description} \\
+\midrule
+\rowcolor{lightbg}
+\texttt{key}          & string  & MANDATORY   & FIELDS table line 46–92 & JSON key in status and command payloads \\
+\texttt{type}         & string  & MANDATORY   & FIELDS \texttt{type} prop & \texttt{bool}, \texttt{number}, or \texttt{string} \\
+\rowcolor{lightbg}
+\texttt{rw}           & boolean & MANDATORY   & FIELDS \texttt{writeTopic} & \texttt{true} = writable, \texttt{false} = read-only \\
+\texttt{label}        & string  & RECOMMENDED & FIELDS \texttt{label} prop & Human-readable label for UI display \\
+\rowcolor{lightbg}
+\texttt{commandTopic} & string  & CONDITIONAL & FIELDS \texttt{writeTopic} & Full topic for per-field command; omit if using JSON control topic \\
+\texttt{values}       & string[] & CONDITIONAL & Platform READMEs        & Enumerated permitted values for string fields \\
+\rowcolor{lightbg}
+\texttt{min}          & number  & OPTIONAL    & openCCU README          & Minimum value for number fields \\
+\texttt{max}          & number  & OPTIONAL    & openCCU README          & Maximum value for number fields \\
+\rowcolor{lightbg}
+\texttt{unit}         & string  & OPTIONAL    & FIELDS \texttt{unit} prop & SI unit symbol \\
+\bottomrule
+\end{tabularx}
+
+% ══════════════════════════════════════════════════════════════════
+\section{Data Types}
+
+\subsection{Type \texttt{bool}}
+
+Binary state. JSON representation: \texttt{true} / \texttt{false} (never quoted strings).
+
+\textbf{Command variants} (from \texttt{faikout\_alias\_generator\_en.js} lines 47–73):
+\begin{itemize}[noitemsep]
+  \item \textbf{JSON control topic:} \lstinline|{"power": true}|
+  \item \textbf{Individual topic} (\topic{command/\textless id\textgreater/econo} etc.): plain integer \texttt{0} or \texttt{1}
+\end{itemize}
+
+\subsection{Type \texttt{number}}
+
+Quantitative measurement or setpoint.
+
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Category} & \textbf{Precision} & \textbf{Example} & \textbf{Unit} \\
+\midrule
+\rowcolor{lightbg}
+Temperature setpoints  & Integer       & \texttt{"temp": 23}           & °C \\
+Temperature sensors    & 1 decimal     & \texttt{"home": 22.5}         & °C \\
+\rowcolor{lightbg}
+BLE sensor readings    & 2 decimals    & \texttt{"ble\_temp": 22.19}   & °C / \% \\
+Energy counters        & Integer       & \texttt{"Whheating": 14780}   & Wh \\
+\rowcolor{lightbg}
+Compressor speed       & Integer       & \texttt{"comp": 48}           & Hz \\
+Power consumption      & Integer       & \texttt{"consumption": 1250}  & W \\
+\rowcolor{lightbg}
+Compressor load        & Integer       & \texttt{"demand": 0}          & \% \\
+\bottomrule
+\end{tabular}
+
+\subsection{Type \texttt{string}}
+
+Named value from a finite or open-ended set. Fields with a \texttt{values} array render as selection controls; those without accept free-form input.
+
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Field} & \textbf{Values} & \textbf{Meaning} \\
+\midrule
+\rowcolor{lightbg}
+\field{mode}     & \texttt{H, C, A, D, F} & Heat, Cool, Auto, Dry, Fan \\
+\field{fan}      & \texttt{A, 1, 2, 3, 4, 5, Q} & Auto, Speed 1–5, Quiet \\
+\rowcolor{lightbg}
+\field{humidify} & \texttt{X, L, S, H, C} & Off, Low, Standard, High, Continuous \\
+\bottomrule
+\end{tabular}
+
+% ══════════════════════════════════════════════════════════════════
+\section{Command Interface}
+
+\subsection{Command Architecture}
+
+Three parallel command mechanisms are supported:
+
+\begin{description}[leftmargin=2.5cm, style=nextline]
+  \item[Mechanism A] \topic{command/\textless id\textgreater/control} — JSON object; used for \field{power}, \field{swingv}, \field{swingh}, \field{temp}, \field{env}
+  \item[Mechanism B] \topic{command/\textless id\textgreater/\textless field\textgreater} — per-field plain value; used for \field{mode}, \field{fan}, \field{econo}, \field{powerful}, \field{comfort}, \field{streamer}, \field{led}, \field{quiet}, \field{demand}, \field{humidify}, \field{autoe}, \field{autop}
+  \item[Mechanism C] \topic{setting/\textless id\textgreater/\textless field\textgreater} — Faikout automation settings; used for \field{autot}, \field{autor}
+\end{description}
+
+\subsection{Command Topic Matrix}
+
+Derived from \texttt{writeTopic} and \texttt{writeConv} definitions in \texttt{faikout\_alias\_generator\_en.js} (lines 47–91) and cross-validated against the Node-RED and openCCU documentation.
+
+\begin{longtable}{@{}llll@{}}
+\toprule
+\textbf{Field} & \textbf{Command Topic} & \textbf{Payload} & \textbf{Example} \\
+\midrule
+\endhead
+\rowcolor{lightbg}
+\field{power}    & \topic{.../control}  & JSON bool   & \texttt{\{"power":true\}} \\
+\field{swingv}   & \topic{.../control}  & JSON bool   & \texttt{\{"swingv":true\}} \\
+\rowcolor{lightbg}
+\field{swingh}   & \topic{.../control}  & JSON bool   & \texttt{\{"swingh":false\}} \\
+\field{temp}     & \topic{.../control}  & JSON number & \texttt{\{"temp":22\}} \\
+\rowcolor{lightbg}
+\field{env}      & \topic{.../control}  & JSON number & \texttt{\{"env":21.5\}} \\
+\field{mode}     & \topic{.../mode}     & plain string & \texttt{H} / \texttt{C} / \texttt{A} / \texttt{D} / \texttt{F} \\
+\rowcolor{lightbg}
+\field{fan}      & \topic{.../fan}      & plain string & \texttt{A} / \texttt{1}–\texttt{5} / \texttt{Q} \\
+\field{econo}    & \topic{.../econo}    & plain int   & \texttt{0} or \texttt{1} \\
+\rowcolor{lightbg}
+\field{powerful} & \topic{.../powerful} & plain int   & \texttt{0} or \texttt{1} \\
+\field{comfort}  & \topic{.../comfort}  & plain int   & \texttt{0} or \texttt{1} \\
+\rowcolor{lightbg}
+\field{quiet}    & \topic{.../quiet}    & plain int   & \texttt{0} or \texttt{1} \\
+\field{streamer} & \topic{.../streamer} & plain int   & \texttt{0} or \texttt{1} \\
+\rowcolor{lightbg}
+\field{led}      & \topic{.../led}      & plain int   & \texttt{0} or \texttt{1} \\
+\field{demand}   & \topic{.../demand}   & plain int   & \texttt{0}–\texttt{100} \\
+\rowcolor{lightbg}
+\field{humidify} & \topic{.../humidify} & plain string & \texttt{X} / \texttt{L} / \texttt{S} / \texttt{H} / \texttt{C} \\
+\field{autoe}    & \topic{.../autoe}    & plain int   & \texttt{0} or \texttt{1} \\
+\rowcolor{lightbg}
+\field{autop}    & \topic{.../autop}    & plain int   & \texttt{0} or \texttt{1} \\
+\field{autot}    & \topic{setting/.../autot} & plain number & \texttt{22.0} \\
+\rowcolor{lightbg}
+\field{autor}    & \topic{setting/.../autor} & plain number & \texttt{0.5} \\
+\field{auto0}    & \topic{setting/...}  & JSON string & \texttt{\{"auto0":"2300"\}} \\
+\rowcolor{lightbg}
+\field{auto1}    & \topic{setting/...}  & JSON string & \texttt{\{"auto1":"0600"\}} \\
+\bottomrule
+\end{longtable}
+
+\subsection{External Temperature Injection (\texttt{env})}
+
+\begin{warnbox}
+\textbf{Cyclic injection required.} The \field{env} value expires after \param{tcontrol} seconds (Faikout firmware setting, default: 600\,s). If no update arrives, the Faikout falls back to its internal sensor.\\[4pt]
+\textbf{Recommended interval:} 30–60 seconds.\\[4pt]
+Source: \texttt{faikout\_alias\_generator\_en.js} lines 82–86 (comment block); Node-RED flow Group\,⑤ documentation.
+\end{warnbox}
+
+% ══════════════════════════════════════════════════════════════════
+\section{Feature Enablement}
+
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Parameter} & \textbf{Type} & \textbf{Default} & \textbf{Firmware UI label} \\
+\midrule
+\rowcolor{lightbg}
+\param{mqttschema} & bool & \texttt{true} & ``MQTT schema topic'' \\
+& & & Description: ``Publish MQTT schema topic'' \\
+\bottomrule
+\end{tabular}
+
+\vspace{6pt}
+Schema publication is independent of the Home Assistant Discovery setting (\param{haenable}). Both toggles are independently controllable as confirmed by the prototype firmware screenshot (Appendix\,A).
+
+% ══════════════════════════════════════════════════════════════════
+\section{Deployment Scenarios}
+
+\subsection{Scenario A: ioBroker Alias Generator}
+
+\textbf{Source:} \texttt{faikout\_alias\_generator\_en.js} · \href{https://codeberg.org/RaW07/faikout-iobroker}{codeberg.org/RaW07/faikout-iobroker}
+
+A script run once in the ioBroker JavaScript adapter. Creates alias data points under \texttt{alias.0.\textless ALIAS\_NAME\textgreater.*}.
+
+\textbf{Current feature detection} (without schema topic): Two HTTP requests (lines 102–141):
+\begin{enumerate}[noitemsep]
+  \item \texttt{GET /} — scrapes field names from JavaScript source (\texttt{o.fieldname} pattern)
+  \item \texttt{GET /revk-settings?\_page=-2} — detects disabled features (\texttt{id="no\textless key\textgreater"}) and BLE status (\texttt{id="bleenable"})
+\end{enumerate}
+Plus: reads MQTT status state for energy meter fields (lines 348–356).
+
+\textbf{Schema properties consumed:}
+
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Schema property} & \textbf{ioBroker usage} \\
+\midrule
+\rowcolor{lightbg}
+\texttt{key}          & State ID: \texttt{alias.0.\textless name\textgreater.\textless key\textgreater} \\
+\texttt{type}         & \texttt{common.type}: \texttt{boolean} / \texttt{number} / \texttt{string} \\
+\rowcolor{lightbg}
+\texttt{rw}           & \texttt{common.write} attribute \\
+\texttt{label}        & \texttt{common.name} \\
+\rowcolor{lightbg}
+\texttt{unit}         & \texttt{common.unit} \\
+\texttt{commandTopic} & \texttt{native.topic} on publish state object \\
+\rowcolor{lightbg}
+\texttt{values}       & \texttt{common.states} mapping (enum) \\
+\texttt{min} / \texttt{max} & \texttt{common.min} / \texttt{common.max} \\
+\bottomrule
+\end{tabular}
+
+\subsection{Scenario B: openHAB Integration Generator}
+
+\textbf{Source:} \texttt{faikout-openhab/automation/js/faikout\_generator.js} · \href{https://codeberg.org/RaW07/faikout-projects}{codeberg.org/RaW07/faikout-projects}
+
+GraalVM JS rule triggered by \texttt{SystemStartlevelTrigger(100)}. Creates MQTT Broker Thing, Generic MQTT Topic Thing with channels, Items, and channel links via the openHAB REST API.
+
+\textbf{Current feature detection:} HTTP GET to \texttt{/api}; filters CHANNELS array against response keys (lines 248–259). Fallback: all 17 defined channels if device unreachable.
+
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Schema property} & \textbf{openHAB usage} \\
+\midrule
+\rowcolor{lightbg}
+\texttt{key}    & Channel ID, JSONPath key (\texttt{JSONPATH:\$.key}), Item name suffix \\
+\texttt{type}   & Item type: \texttt{bool}→\texttt{Switch}, \texttt{number}→\texttt{Number}, \texttt{string}→\texttt{String} \\
+\rowcolor{lightbg}
+\texttt{rw}     & Presence of \texttt{commandTopic} + \texttt{formatBeforePublish} on channel \\
+\texttt{label}  & Channel and Item label \\
+\rowcolor{lightbg}
+\texttt{status} & Channel \texttt{stateTopic} \\
+\texttt{command}& Channel \texttt{commandTopic} (JSON-control fields) \\
+\bottomrule
+\end{tabular}
+
+\subsection{Scenario C: Homematic CCU via openCCU / Redmatic}
+
+\textbf{Source:} \texttt{faikout-flow.json} · \href{https://codeberg.org/RaW07/openCCU}{codeberg.org/RaW07/openCCU}
+
+Node-RED flow on Redmatic. Maps MQTT fields to CCU system variables; bidirectional: status → CCU variables, CCU variable changes → MQTT commands. Includes idempotent ► Setup button creating variables via ReGa script on port 8181.
+
+\textbf{System variables created} (prefix \texttt{Faikout\_\textless Device\textgreater\_}):
+
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{CCU Variable} & \textbf{CCU Type} & \textbf{Schema field} & \textbf{Schema constraints} \\
+\midrule
+\rowcolor{lightbg}
+\texttt{Power}     & Bool    & \field{power}   & — \\
+\texttt{Mode}      & Enum    & \field{mode}    & values: H,C,A,D,F \\
+\rowcolor{lightbg}
+\texttt{Fan}       & Enum    & \field{fan}     & values: A,1,2,3,4,5,Q \\
+\texttt{Temp\_Soll}& Float   & \field{temp}    & min:16, max:30, unit:°C \\
+\rowcolor{lightbg}
+\texttt{Econo}     & Bool    & \field{econo}   & — \\
+\texttt{Comfort}   & Bool    & \field{comfort} & — \\
+\rowcolor{lightbg}
+\texttt{Powerful}  & Bool    & \field{powerful}& — \\
+\texttt{Quiet}     & Bool    & \field{quiet}   & — \\
+\rowcolor{lightbg}
+\texttt{SwingH}    & Bool    & \field{swingh}  & — \\
+\texttt{SwingV}    & Bool    & \field{swingv}  & — \\
+\rowcolor{lightbg}
+\texttt{Bedarf}    & Float   & \field{demand}  & min:0, max:100, unit:\% \\
+\texttt{Raum}      & Float   & \field{env}/\field{ble\_temp} & unit:°C \\
+\rowcolor{lightbg}
+\texttt{Online}    & Bool    & *(synthetic)*   & — \\
+\bottomrule
+\end{tabular}
+
+\vspace{4pt}
+\textbf{Humidity extension:} The flow includes a standalone Humidity Control tab reading \field{ble\_temp} and \field{ble\_hum} for dew-point-based dehumidification control (DRY mode). BLE fields are relevant schema fields.
+
+\subsection{Scenario D: Node-RED Standalone Flow}
+
+\textbf{Source:} \texttt{faikout-nodered-flow.json} · \href{https://codeberg.org/RaW07/faikout-NodeRed}{codeberg.org/RaW07/faikout-NodeRed}
+
+Import-ready flow with six groups in a single tab ``Faikout MQTT'':
+
+\begin{tabular}{@{}clL{7cm}@{}}
+\toprule
+\textbf{Group} & \textbf{Name} & \textbf{Function} \\
+\midrule
+\rowcolor{lightbg}
+① & Configuration       & Stores device ID in flow context \\
+② & Receive Status      & Subscribe \topic{state/+/status}, filter by ID, parse JSON, emit per-field messages \\
+\rowcolor{lightbg}
+③ & Commands            & Test inject nodes + shared ``Befehl senden'' function node \\
+④ & Settings            & Faikout automation: \field{autot}, \field{autor}, timers \\
+\rowcolor{lightbg}
+⑤ & External Sensor     & Cyclic 30\,s injection of \field{env} to \topic{.../control} \\
+⑥ & Diagnostics         & Shows which fields this model actually reports (✓/✗) \\
+\bottomrule
+\end{tabular}
+
+\vspace{4pt}
+Group\,⑥ (Diagnostics) manually implements field discovery — exactly what the schema topic replaces automatically.
+
+\subsection{Scenario E: Multi-Device Wildcard Discovery}
+
+Subscribe to \topic{state/+/schema}. Broker delivers all retained schemas. Consumer builds a device registry and creates integrations for all discovered devices automatically — without per-device ID configuration.
+
+This is the intended end state for all four existing integrations. Currently all four require manual device ID entry; a schema topic makes this obsolete.
+
+% ══════════════════════════════════════════════════════════════════
+\section{Test Scenarios}
+
+\begin{tabular}{@{}lllp{7cm}@{}}
+\toprule
+\textbf{ID} & \textbf{Category} & \textbf{Priority} & \textbf{Pass Criterion} \\
+\midrule
+\rowcolor{lightbg}
+T-001 & Basic conformance  & CRITICAL & Retained schema received within 5\,s of CONNACK \\
+T-002 & Sequence           & HIGH     & $T_\text{schema} \leq T_\text{first status}$ \\
+\rowcolor{lightbg}
+T-003 & Retention          & CRITICAL & Schema delivered to late subscriber within 2\,s \\
+T-004 & Field set accuracy & HIGH     & Schema fields = status payload keys \\
+\rowcolor{lightbg}
+T-005 & Type correctness   & HIGH     & All status values match declared JSON types \\
+T-006 & JSON cmd response  & HIGH     & \field{power} toggle reflected in status within 10\,s \\
+\rowcolor{lightbg}
+T-007 & Per-field cmd      & HIGH     & \field{mode} change reflected in status within 10\,s \\
+T-008 & Read-only immunity & MEDIUM   & Command to read-only field leaves value unchanged \\
+\rowcolor{lightbg}
+T-009 & Enum validation    & MEDIUM   & Invalid \field{mode} value ignored \\
+T-010 & Range validation   & MEDIUM   & Out-of-range \field{temp} ignored \\
+\rowcolor{lightbg}
+T-011 & \field{env} expiry & HIGH     & \field{env} falls back to internal sensor after \texttt{tcontrol}\,s \\
+T-012 & Disable parameter  & MEDIUM   & No schema published when \param{mqttschema}=false \\
+\rowcolor{lightbg}
+T-013 & Wildcard discovery & MEDIUM   & N devices → N schemas, topics correctly correlated \\
+T-014 & BLE conditional    & MEDIUM   & BLE fields absent when \param{bleenable}=false \\
+\bottomrule
+\end{tabular}
+
+% ══════════════════════════════════════════════════════════════════
+\section{Security Considerations}
+
+\begin{description}[leftmargin=3cm, style=nextline]
+  \item[Information Disclosure] Schema topic reveals complete field structure and command interface. Restrict via broker ACL where sensitive.
+  \item[Command Injection] No additional attack surface vs.\ pre-existing command topics. Broker ACLs \should{} restrict write to \topic{command/\textless id\textgreater/*} and \topic{setting/\textless id\textgreater/*}.
+  \item[Schema Spoofing] Malicious retained schema could redirect consumers. Broker ACLs \should{} restrict write to \topic{state/\textless id\textgreater/schema} to the device itself.
+  \item[Authentication] Delegated entirely to the broker layer (TLS, username/password, client certificates).
+\end{description}
+
+% ══════════════════════════════════════════════════════════════════
+\newpage
+\appendix
+
+\section{Prototype Evidence}
+\label{app:prototype}
+
+\subsection{Firmware Settings Screenshot}
+
+The following shows the Faikout firmware settings page (device \texttt{90706931486C}, Faikout-S3-MINI-N8, MQTT connected) from Codeberg issue \href{https://codeberg.org/revk/ESP32-Faikout/issues/1085}{revk/ESP32-Faikout\#1085}, posted 2026-08-29:
+
+\begin{center}
+\begin{mdframed}[backgroundcolor=lightbg, linewidth=0.5pt]
+\ttfamily\small
+\begin{tabbing}
+\hspace{5.5cm}\=\kill
+\textbf{90706931486C} \> \fbox{\color{codegreen}\textbf{MQTT connected}} \\[6pt]
+\textit{Save \quad Basic \quad [Faikout] \quad Extra \quad Library} \\[10pt]
+Fahrenheit              \> ○ \quad Web shows Fahrenheit \\
+Text rather than icons  \> ● \quad Do not show icons on web UI \\
+Home Assistant          \> ○ \quad Home Assistant \\
+\textcolor{codegreen}{\textbf{MQTT schema topic}}   \> \textcolor{codegreen}{● \quad Publish MQTT schema topic} \\
+Dark mode LED           \> ○ \quad Default LED off \\
+Debug                   \> ○ \quad Debug – logs summary of status responses \\
+BLE Sensors             \> ○ \quad Enable BLE for sensors or remote \\
+\end{tabbing}
+\end{mdframed}
+\end{center}
+
+Key observations:
+\begin{itemize}[noitemsep]
+  \item Toggle label matches parameter name \param{mqttschema}
+  \item Home Assistant toggle disabled; MQTT schema topic enabled — confirms independent operation
+  \item Device MQTT-connected at time of screenshot
+\end{itemize}
+
+\subsection{Prototype JSON Payload (Issue Comment 2026-08-23)}
+
+The prototype used a hierarchical structure separating topics, commands, and status fields:
+
+\begin{lstlisting}[style=json]
+{
+  "topics": {
+    "status":  "state/GuestAC/status",
+    "command": "command/GuestAC"
+  },
+  "commands": {
+    "control":  { "payload": "json" },
+    "temp":     { "payload": "float", "min": 16, "max": 30 },
+    "mode":     { "payload": "string", "values": ["H","C","A","D","F"] }
+  },
+  "status_fields": {
+    "power":  { "type": "bool",  "writable": true },
+    "temp":   { "type": "float", "unit": "C", "writable": true }
+  }
+}
+\end{lstlisting}
+
+This specification adopts a flat \texttt{fields} array as the primary format — more natural for consumer iteration. Topic structure (\topic{state/\textless id\textgreater/status}, \topic{command/\textless id\textgreater}) is consistent with the prototype.
+
+% ──────────────────────────────────────────────────────────────────
+\section{Complete Field Reference}
+\label{app:fields}
+
+Source: \texttt{faikout\_alias\_generator\_en.js} lines 46–92 (ioBroker FIELDS definition) — the most complete field inventory of any existing integration.
+
+\subsection{Control Fields}
+
+\begin{tabularx}{\textwidth}{@{}lllXlll@{}}
+\toprule
+\textbf{Key} & \textbf{Type} & \textbf{RW} & \textbf{Command} & \textbf{Values} & \textbf{Range} & \textbf{Unit} \\
+\midrule
+\rowcolor{lightbg}
+\field{power}    & bool   & yes & \texttt{/control} JSON  & —               & —       & — \\
+\field{mode}     & string & yes & \texttt{/mode} plain    & H,C,A,D,F       & —       & — \\
+\rowcolor{lightbg}
+\field{fan}      & string & yes & \texttt{/fan} plain     & A,1,2,3,4,5,Q   & —       & — \\
+\field{temp}     & number & yes & \texttt{/control} JSON  & —               & 16–30   & °C \\
+\rowcolor{lightbg}
+\field{swingv}   & bool   & yes & \texttt{/control} JSON  & —               & —       & — \\
+\field{swingh}   & bool   & yes & \texttt{/control} JSON  & —               & —       & — \\
+\rowcolor{lightbg}
+\field{econo}    & bool   & yes & \texttt{/econo} int     & —               & —       & — \\
+\field{powerful} & bool   & yes & \texttt{/powerful} int  & —               & —       & — \\
+\rowcolor{lightbg}
+\field{comfort}  & bool   & yes & \texttt{/comfort} int   & —               & —       & — \\
+\field{quiet}    & bool   & yes & \texttt{/quiet} int     & —               & —       & — \\
+\rowcolor{lightbg}
+\field{streamer} & bool   & yes & \texttt{/streamer} int  & —               & —       & — \\
+\field{led}      & bool   & yes & \texttt{/led} int       & —               & —       & — \\
+\rowcolor{lightbg}
+\field{demand}   & number & yes & \texttt{/demand} int    & —               & 0–100   & \% \\
+\field{humidify} & string & yes & \texttt{/humidify} plain& X,L,S,H,C       & —       & — \\
+\bottomrule
+\end{tabularx}
+
+\subsection{Faikout Automation Fields}
+
+\begin{tabularx}{\textwidth}{@{}llllX@{}}
+\toprule
+\textbf{Key} & \textbf{Type} & \textbf{RW} & \textbf{Command Topic} & \textbf{Note} \\
+\midrule
+\rowcolor{lightbg}
+\field{autoe}  & bool   & yes & \texttt{/autoe} int             & Auto mode enable \\
+\field{autop}  & bool   & yes & \texttt{/autop} int             & Auto power enable \\
+\rowcolor{lightbg}
+\field{autot}  & number & yes & \texttt{setting/.../autot}      & Faikout target temperature (°C) \\
+\field{autor}  & number & yes & \texttt{setting/.../autor}      & Faikout hysteresis (°C) \\
+\rowcolor{lightbg}
+\field{auto0}  & string & yes & \texttt{setting/...} JSON       & Timer off time (HHMM format) \\
+\field{auto1}  & string & yes & \texttt{setting/...} JSON       & Timer on time (HHMM format) \\
+\bottomrule
+\end{tabularx}
+
+\subsection{Read-Only Sensor Fields}
+
+\begin{tabular}{@{}lllll@{}}
+\toprule
+\textbf{Key} & \textbf{Type} & \textbf{Unit} & \textbf{Description} \\
+\midrule
+\rowcolor{lightbg}
+\field{home}        & number & °C  & Indoor temperature \\
+\field{outside}     & number & °C  & Outdoor temperature \\
+\rowcolor{lightbg}
+\field{liquid}      & number & °C  & Refrigerant temperature \\
+\field{inlet}       & number & °C  & Inlet temperature \\
+\rowcolor{lightbg}
+\field{env}         & number & °C  & Room temperature (external reference) \\
+\field{hum}         & number & \%  & Humidity \\
+\rowcolor{lightbg}
+\field{comp}        & number & Hz  & Compressor speed \\
+\field{fanrpm}      & number & RPM & Fan speed \\
+\rowcolor{lightbg}
+\field{consumption} & number & W   & Power consumption \\
+\field{Whheating}   & number & Wh  & Heating energy (cumulative) \\
+\rowcolor{lightbg}
+\field{Whcooling}   & number & Wh  & Cooling energy (cumulative) \\
+\field{Whoutside}   & number & Wh  & Outdoor unit energy meter \\
+\rowcolor{lightbg}
+\field{anglev}      & number & °   & Vertical vane angle \\
+\field{antifreeze}  & bool   & —   & Anti-freeze active \\
+\rowcolor{lightbg}
+\field{autob}       & string & —   & BLE reference device (MAC) \\
+\bottomrule
+\end{tabular}
+
+\subsection{Write-Only Fields}
+
+\begin{tabularx}{\textwidth}{@{}llllX@{}}
+\toprule
+\textbf{Key} & \textbf{Type} & \textbf{Unit} & \textbf{Command} & \textbf{Note} \\
+\midrule
+\rowcolor{lightbg}
+\field{env\_set} & number & °C & \texttt{/control}: \texttt{\{"env":val\}} & \textbf{Must be sent cyclically (30–60\,s)} \\
+\bottomrule
+\end{tabularx}
+
+\subsection{BLE Sensor Fields (conditional — only when \texttt{bleenable=true})}
+
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Key} & \textbf{Type} & \textbf{Unit} & \textbf{Description} \\
+\midrule
+\rowcolor{lightbg}
+\field{ble\_temp} & number & °C & BLE sensor temperature \\
+\field{ble\_hum}  & number & \% & BLE sensor humidity \\
+\rowcolor{lightbg}
+\field{ble\_bat}  & number & \% & BLE sensor battery level \\
+\field{ble\_volt} & number & V  & BLE sensor battery voltage \\
+\bottomrule
+\end{tabular}
+
+% ──────────────────────────────────────────────────────────────────
+\section{Example Payloads}
+\label{app:examples}
+
+\subsection{Full Schema Payload}
+
+Based on hardware device \texttt{3eb5ebcd} (Faikout-S3-MINI-N8). Values from openCCU prototype screenshot 2026-08-24: Home 22.5\,°C, Humidity 50\%, Outside 22\,°C, BLE 22.19\,°C / 47.04\% / 48\%.
+
+\begin{lstlisting}[style=json]
+{
+  "spec":    "FAIKOUT-SPEC-MQTT-SCHEMA-001/0.2",
+  "model":   "Faikout-S3-MINI-N8",
+  "version": "2026-08-14T16:21:44",
+  "status":  "state/3eb5ebcd/status",
+  "command": "command/3eb5ebcd/control",
+  "fields": [
+    { "key": "power",    "type": "bool",   "rw": true,  "label": "Power" },
+    { "key": "mode",     "type": "string", "rw": true,  "label": "Mode",
+      "commandTopic": "command/3eb5ebcd/mode", "values": ["H","C","A","D","F"] },
+    { "key": "fan",      "type": "string", "rw": true,  "label": "Fan Speed",
+      "commandTopic": "command/3eb5ebcd/fan",  "values": ["A","1","2","3","4","5","Q"] },
+    { "key": "temp",     "type": "number", "rw": true,  "label": "Setpoint",
+      "min": 16, "max": 30, "unit": "°C" },
+    { "key": "swingv",   "type": "bool",   "rw": true,  "label": "Vertical Swing" },
+    { "key": "swingh",   "type": "bool",   "rw": true,  "label": "Horizontal Swing" },
+    { "key": "econo",    "type": "bool",   "rw": true,  "label": "Economy Mode",
+      "commandTopic": "command/3eb5ebcd/econo" },
+    { "key": "powerful", "type": "bool",   "rw": true,  "label": "Powerful Mode",
+      "commandTopic": "command/3eb5ebcd/powerful" },
+    { "key": "demand",   "type": "number", "rw": true,  "label": "Compressor Load",
+      "commandTopic": "command/3eb5ebcd/demand", "min": 0, "max": 100, "unit": "%" },
+    { "key": "home",     "type": "number", "rw": false, "label": "Indoor Temp",    "unit": "°C" },
+    { "key": "outside",  "type": "number", "rw": false, "label": "Outdoor Temp",   "unit": "°C" },
+    { "key": "hum",      "type": "number", "rw": false, "label": "Humidity",       "unit": "%"  },
+    { "key": "comp",     "type": "number", "rw": false, "label": "Compressor",     "unit": "Hz" },
+    { "key": "consumption","type":"number", "rw": false, "label": "Power",          "unit": "W"  },
+    { "key": "env",      "type": "number", "rw": false, "label": "Room Temp (ref)","unit": "°C" },
+    { "key": "env_set",  "type": "number", "rw": true,  "label": "Room Temp (inject)","unit": "°C" },
+    { "key": "ble_temp", "type": "number", "rw": false, "label": "BLE Temp",       "unit": "°C" },
+    { "key": "ble_hum",  "type": "number", "rw": false, "label": "BLE Humidity",   "unit": "%"  },
+    { "key": "ble_bat",  "type": "number", "rw": false, "label": "BLE Battery",    "unit": "%"  }
+  ]
+}
+\end{lstlisting}
+
+\subsection{Corresponding Status Payload (Real Hardware Values)}
+
+\begin{lstlisting}[style=json]
+{
+  "power":    false,
+  "mode":     "H",
+  "fan":      "A",
+  "temp":     23,
+  "home":     22.5,
+  "hum":      50,
+  "outside":  22,
+  "demand":   0,
+  "ble_temp": 22.19,
+  "ble_hum":  47.04,
+  "ble_bat":  48
+}
+\end{lstlisting}
+
+% ══════════════════════════════════════════════════════════════════
+\vfill
+\begin{center}
+\color{codegray}\small
+\rule{0.5\textwidth}{0.3pt}\\[4pt]
+FAIKOUT-SPEC-MQTT-SCHEMA-001 · Draft 0.2 · September 2026 · RaW07\\
+Part of \href{https://codeberg.org/RaW07/faikout-projects}{codeberg.org/RaW07/faikout-projects}
+\end{center}
+
+\end{document}

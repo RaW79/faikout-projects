@@ -10,6 +10,8 @@ const char * const tab[] = { "Ola-GPIO-Mod" };
 #include "esp_sleep.h"
 #include "esp_task_wdt.h"
 #include <driver/gpio.h>
+#include <driver/ledc.h>
+#include "esp_adc/adc_oneshot.h"
 #include <driver/uart.h>
 #include "esp_http_server.h"
 #include <math.h>
@@ -1546,6 +1548,17 @@ autosub (void *json, const char *topic, jo_t j)
 }
 
 static void xgpio_state_send (void); // forward declaration
+static void xgpio_pwm_set (int idx, int duty_pct); // forward declaration
+static int xgpio_pwm_duty[5] = { 0 }; // current PWM duty 0-100 per xgpio
+static void xgpio_adc_init (int idx, int gpio_num);
+static int xgpio_adc_read_pct (int idx);
+static adc_oneshot_unit_handle_t xgpio_adc1_handle = NULL;
+static adc_oneshot_unit_handle_t xgpio_adc2_handle = NULL;
+static adc_channel_t xgpio_adc_channel[5];
+static adc_unit_t xgpio_adc_unit[5];
+static int xgpio_adc_pct[5] = { 0 };
+static int xgpio_adc_reported[5] = { -1, -1, -1, -1, -1 };
+static volatile int xgpio_intr_pending = 0; // set by ISR, checked in main loop
 
 // Called by an MQTT client inside the revk library
 const char *
@@ -1758,29 +1771,34 @@ mqtt_client_callback (int client, const char *prefix, const char *target, const 
    }
    jo_free (&s);
    // Additional GPIO output control
-   if (!strcmp (suffix, "xgpio1") && xgpio1.set && xgpio1out)
+   if (!strcmp (suffix, "xgpio1") && xgpio1.set)
    {
-      revk_gpio_set (xgpio1, j ? jo_read_int (j) : 1);
+      if (xgpio1pwm) xgpio_pwm_set (0, j ? jo_read_int (j) : 100);
+      else if (xgpio1out) revk_gpio_set (xgpio1, j ? jo_read_int (j) : 1);
       xgpio_state_send ();
    }
-   if (!strcmp (suffix, "xgpio2") && xgpio2.set && xgpio2out)
+   if (!strcmp (suffix, "xgpio2") && xgpio2.set)
    {
-      revk_gpio_set (xgpio2, j ? jo_read_int (j) : 1);
+      if (xgpio2pwm) xgpio_pwm_set (1, j ? jo_read_int (j) : 100);
+      else if (xgpio2out) revk_gpio_set (xgpio2, j ? jo_read_int (j) : 1);
       xgpio_state_send ();
    }
-   if (!strcmp (suffix, "xgpio3") && xgpio3.set && xgpio3out)
+   if (!strcmp (suffix, "xgpio3") && xgpio3.set)
    {
-      revk_gpio_set (xgpio3, j ? jo_read_int (j) : 1);
+      if (xgpio3pwm) xgpio_pwm_set (2, j ? jo_read_int (j) : 100);
+      else if (xgpio3out) revk_gpio_set (xgpio3, j ? jo_read_int (j) : 1);
       xgpio_state_send ();
    }
-   if (!strcmp (suffix, "xgpio4") && xgpio4.set && xgpio4out)
+   if (!strcmp (suffix, "xgpio4") && xgpio4.set)
    {
-      revk_gpio_set (xgpio4, j ? jo_read_int (j) : 1);
+      if (xgpio4pwm) xgpio_pwm_set (3, j ? jo_read_int (j) : 100);
+      else if (xgpio4out) revk_gpio_set (xgpio4, j ? jo_read_int (j) : 1);
       xgpio_state_send ();
    }
-   if (!strcmp (suffix, "xgpio5") && xgpio5.set && xgpio5out)
+   if (!strcmp (suffix, "xgpio5") && xgpio5.set)
    {
-      revk_gpio_set (xgpio5, j ? jo_read_int (j) : 1);
+      if (xgpio5pwm) xgpio_pwm_set (4, j ? jo_read_int (j) : 100);
+      else if (xgpio5out) revk_gpio_set (xgpio5, j ? jo_read_int (j) : 1);
       xgpio_state_send ();
    }
    return ret;
@@ -2125,11 +2143,25 @@ web_control (httpd_req_t *req)
 #define XGPIO_BTN(n) do { \
       if (xgpio##n.set) { \
          const char *_name = *xgpio##n##name ? xgpio##n##name : "# GPIO " #n; \
-         revk_web_send (req, \
-            "<td><label class=box>" \
-            "<input type=checkbox id='xgpio" #n "b' onchange=\"w('xgpio" #n "',this.checked?'1':'0');\">" \
-            "<span class=button>%s</span>" \
-            "</label></td>", _name); \
+         if (xgpio##n##pwm) { \
+            revk_web_send (req, \
+               "<td><div style='text-align:center'>" \
+               "<span id='xgpio" #n "v'>0%%</span><br>" \
+               "<input type=range id='xgpio" #n "s' min=0 max=100 value=0 style='width:80px'" \
+               " oninput=\"w('xgpio" #n "',this.value);s('xgpio" #n "v',this.value+'%%');\"><br>" \
+               "%s</div></td>", _name); \
+         } else if (xgpio##n##adc) { \
+            revk_web_send (req, \
+               "<td><div style='text-align:center'>" \
+               "<span id='xgpio" #n "v' style='font-size:1.2em'>-%%</span><br>" \
+               "%s</div></td>", _name); \
+         } else { \
+            revk_web_send (req, \
+               "<td><label class=box>" \
+               "<input type=checkbox id='xgpio" #n "b' onchange=\"w('xgpio" #n "',this.checked?'1':'0');\">" \
+               "<span class=button>%s</span>" \
+               "</label></td>", _name); \
+         } \
       } \
 } while(0)
       tr (NULL);
@@ -2221,11 +2253,12 @@ web_control (httpd_req_t *req)
                   "e('fan',o.fan);"     //
                   "if(o.shutdown){reboot=true;s('shutdown','Restarting: '+o.shutdown);g('shutdown').style.display='';};"        //
                   "if(o.xgpio){"        //
-                  "b('xgpio1b',o.xgpio.xgpio1);"       //
-                  "b('xgpio2b',o.xgpio.xgpio2);"       //
-                  "b('xgpio3b',o.xgpio.xgpio3);"       //
-                  "b('xgpio4b',o.xgpio.xgpio4);"       //
-                  "b('xgpio5b',o.xgpio.xgpio5);"       //
+                  "var v;"      //
+                  "v=o.xgpio.xgpio1;if(typeof v==='number'){n('xgpio1s',v);s('xgpio1v',v+'%%');}else b('xgpio1b',v);"  //
+                  "v=o.xgpio.xgpio2;if(typeof v==='number'){n('xgpio2s',v);s('xgpio2v',v+'%%');}else b('xgpio2b',v);"  //
+                  "v=o.xgpio.xgpio3;if(typeof v==='number'){n('xgpio3s',v);s('xgpio3v',v+'%%');}else b('xgpio3b',v);"  //
+                  "v=o.xgpio.xgpio4;if(typeof v==='number'){n('xgpio4s',v);s('xgpio4v',v+'%%');}else b('xgpio4b',v);"  //
+                  "v=o.xgpio.xgpio5;if(typeof v==='number'){n('xgpio5s',v);s('xgpio5v',v+'%%');}else b('xgpio5b',v);"  //
                   "};"  //
                   "};};"        //
                   "c();"        //
@@ -2299,11 +2332,11 @@ web_status (httpd_req_t *req)
       if (xgpio1.set || xgpio2.set || xgpio3.set || xgpio4.set || xgpio5.set)
       {
          jo_object (j, "xgpio");
-         if (xgpio1.set) jo_bool (j, "xgpio1", revk_gpio_get (xgpio1));
-         if (xgpio2.set) jo_bool (j, "xgpio2", revk_gpio_get (xgpio2));
-         if (xgpio3.set) jo_bool (j, "xgpio3", revk_gpio_get (xgpio3));
-         if (xgpio4.set) jo_bool (j, "xgpio4", revk_gpio_get (xgpio4));
-         if (xgpio5.set) jo_bool (j, "xgpio5", revk_gpio_get (xgpio5));
+         if (xgpio1.set) { if (xgpio1pwm) jo_int (j, "xgpio1", xgpio_pwm_duty[0]); else jo_bool (j, "xgpio1", revk_gpio_get (xgpio1)); }
+         if (xgpio2.set) { if (xgpio2pwm) jo_int (j, "xgpio2", xgpio_pwm_duty[1]); else jo_bool (j, "xgpio2", revk_gpio_get (xgpio2)); }
+         if (xgpio3.set) { if (xgpio3pwm) jo_int (j, "xgpio3", xgpio_pwm_duty[2]); else jo_bool (j, "xgpio3", revk_gpio_get (xgpio3)); }
+         if (xgpio4.set) { if (xgpio4pwm) jo_int (j, "xgpio4", xgpio_pwm_duty[3]); else jo_bool (j, "xgpio4", revk_gpio_get (xgpio4)); }
+         if (xgpio5.set) { if (xgpio5pwm) jo_int (j, "xgpio5", xgpio_pwm_duty[4]); else jo_bool (j, "xgpio5", revk_gpio_get (xgpio5)); }
          jo_close (j);
       }
       wsend (&j);
@@ -2331,13 +2364,16 @@ web_status (httpd_req_t *req)
       {
          // Handle xgpio output commands
 #define XGPIO_WS_CMD(n) do { \
-         if (xgpio##n.set && xgpio##n##out) { \
+         if (xgpio##n.set && (xgpio##n##out || xgpio##n##pwm)) { \
             const char *_key = "\"xgpio" #n "\""; \
             char *_p = strstr ((char *) buf, _key); \
             if (_p) { \
                _p += strlen (_key); \
                while (*_p == ' ' || *_p == ':' || *_p == '"') _p++; \
-               revk_gpio_set (xgpio##n, (*_p == 't' || *_p == '1') ? 1 : 0); \
+               if (xgpio##n##pwm) \
+                  xgpio_pwm_set (n - 1, atoi (_p)); \
+               else \
+                  revk_gpio_set (xgpio##n, (*_p == 't' || *_p == '1') ? 1 : 0); \
             } \
          } \
 } while(0)
@@ -2347,6 +2383,8 @@ web_status (httpd_req_t *req)
          XGPIO_WS_CMD (4);
          XGPIO_WS_CMD (5);
 #undef XGPIO_WS_CMD
+         if (xgpio1.set || xgpio2.set || xgpio3.set || xgpio4.set || xgpio5.set)
+            xgpio_state_send ();
          daikin_control (j, 0);
          jo_free (&j);
       }
@@ -3262,6 +3300,73 @@ send_ha_config (void)
    ha_config_sensor ("spi",.name = "PSRAM",.field = "spi",.unit = "B",.diag = 1,.fallback = 1,.delete = !haram);
    ha_config_sensor ("uptime",.name = "Uptime",.field = "uptime",.unit = "s",.type = "duration",.stateclass = "measurement",.diag =
                      1,.fallback = 1,.delete = !hauptime);
+   // xgpio HA discovery
+   {
+      char *xgpiostate = revk_topic (topicstate, NULL, "xgpio");
+#define XGPIO_HA(n) do { \
+   int _active = xgpio##n.set && *xgpio##n##name; \
+   const char *_name = xgpio##n##name; \
+   /* switch: digital output */ \
+   if (asprintf (&topic, "%s/switch/%s%s/config", topicha, revk_id, "xgpio" #n) >= 0) { \
+      if (_active && xgpio##n##out && !xgpio##n##pwm) { \
+         jo_t j = make ("xgpio" #n, "mdi:toggle-switch"); \
+         jo_string (j, "name", _name); \
+         jo_string (j, "stat_t", xgpiostate); \
+         jo_stringf (j, "cmd_t", "%s/xgpio" #n, cmd); \
+         jo_stringf (j, "val_tpl", "{{value_json.xgpio" #n "}}"); \
+         jo_bool (j, "pl_on", 1); jo_bool (j, "pl_off", 0); \
+         revk_mqtt_send (NULL, 1, topic, &j); \
+      } else revk_mqtt_send_str (topic); \
+      free (topic); \
+   } \
+   /* binary_sensor: digital input */ \
+   if (asprintf (&topic, "%s/binary_sensor/%s%s/config", topicha, revk_id, "xgpio" #n) >= 0) { \
+      if (_active && !xgpio##n##out && !xgpio##n##adc) { \
+         jo_t j = make ("xgpio" #n, "mdi:electric-switch"); \
+         jo_string (j, "name", _name); \
+         jo_string (j, "stat_t", xgpiostate); \
+         jo_stringf (j, "val_tpl", "{{value_json.xgpio" #n "}}"); \
+         jo_bool (j, "pl_on", 1); jo_bool (j, "pl_off", 0); \
+         revk_mqtt_send (NULL, 1, topic, &j); \
+      } else revk_mqtt_send_str (topic); \
+      free (topic); \
+   } \
+   /* number: PWM output */ \
+   if (asprintf (&topic, "%s/number/%s%s/config", topicha, revk_id, "xgpio" #n) >= 0) { \
+      if (_active && xgpio##n##pwm) { \
+         jo_t j = make ("xgpio" #n, "mdi:sine-wave"); \
+         jo_string (j, "name", _name); \
+         jo_string (j, "stat_t", xgpiostate); \
+         jo_stringf (j, "cmd_t", "%s/xgpio" #n, cmd); \
+         jo_stringf (j, "val_tpl", "{{value_json.xgpio" #n "}}"); \
+         jo_int (j, "min", 0); jo_int (j, "max", 100); jo_int (j, "step", 1); \
+         jo_string (j, "unit_of_meas", "%"); \
+         revk_mqtt_send (NULL, 1, topic, &j); \
+      } else revk_mqtt_send_str (topic); \
+      free (topic); \
+   } \
+   /* sensor: ADC input */ \
+   if (asprintf (&topic, "%s/sensor/%s%s/config", topicha, revk_id, "xgpio" #n) >= 0) { \
+      if (_active && xgpio##n##adc) { \
+         jo_t j = make ("xgpio" #n, "mdi:gauge"); \
+         jo_string (j, "name", _name); \
+         jo_string (j, "stat_t", xgpiostate); \
+         jo_stringf (j, "val_tpl", "{{value_json.xgpio" #n "}}"); \
+         jo_string (j, "unit_of_meas", "%"); \
+         jo_string (j, "state_class", "measurement"); \
+         revk_mqtt_send (NULL, 1, topic, &j); \
+      } else revk_mqtt_send_str (topic); \
+      free (topic); \
+   } \
+} while(0)
+      XGPIO_HA (1);
+      XGPIO_HA (2);
+      XGPIO_HA (3);
+      XGPIO_HA (4);
+      XGPIO_HA (5);
+#undef XGPIO_HA
+      free (xgpiostate);
+   }
    free (cmd);
    free (hastatus);
 }
@@ -3480,16 +3585,29 @@ revk_web_extra (httpd_req_t *req, int page)
    {
       revk_web_setting_title (req, "Additional GPIOs");
 #define XGPIO_WEB(n) do { \
-   char _lbl##n[48], _lblout##n[56], _lblpd##n[56]; \
+   char _lbl##n[48], _lblout##n[56], _lblpd##n[56], _lblpwm##n[56], _lblfreq##n[64], _lbladc##n[56], _lbladct##n[64]; \
    const char *_name##n = *xgpio##n##name ? xgpio##n##name : "# GPIO " #n; \
-   snprintf(_lbl##n,    sizeof(_lbl##n),    "%s", _name##n); \
-   snprintf(_lblout##n, sizeof(_lblout##n), "%s Output",    _name##n); \
-   snprintf(_lblpd##n,  sizeof(_lblpd##n),  "%s Pull-Down", _name##n); \
-   revk_web_setting (req, "Name",       "xgpio" #n "name"); \
-   revk_web_setting (req, _lbl##n,      "xgpio" #n); \
-   revk_web_setting (req, _lblout##n,   "xgpio" #n "out"); \
-   if (!xgpio##n##out) \
-      revk_web_setting (req, _lblpd##n, "xgpio" #n "pd"); \
+   snprintf(_lbl##n,     sizeof(_lbl##n),     "%s",                    _name##n); \
+   snprintf(_lblout##n,  sizeof(_lblout##n),  "%s Output",              _name##n); \
+   snprintf(_lblpd##n,   sizeof(_lblpd##n),   "%s Pull-Down",           _name##n); \
+   snprintf(_lblpwm##n,  sizeof(_lblpwm##n),  "%s PWM",                 _name##n); \
+   snprintf(_lblfreq##n, sizeof(_lblfreq##n), "%s Frequency (Hz)",      _name##n); \
+   snprintf(_lbladc##n,  sizeof(_lbladc##n),  "%s ADC Input",           _name##n); \
+   snprintf(_lbladct##n, sizeof(_lbladct##n), "%s ADC Threshold (%%)",  _name##n); \
+   revk_web_setting (req, "Name",             "xgpio" #n "name"); \
+   revk_web_setting (req, _lbl##n,            "xgpio" #n); \
+   revk_web_setting (req, _lblout##n,         "xgpio" #n "out"); \
+   if (xgpio##n##out) { \
+      revk_web_setting (req, _lblpwm##n,      "xgpio" #n "pwm"); \
+      if (xgpio##n##pwm) \
+         revk_web_setting (req, _lblfreq##n,  "xgpio" #n "freq"); \
+   } else { \
+      revk_web_setting (req, _lbladc##n,      "xgpio" #n "adc"); \
+      if (xgpio##n##adc) \
+         revk_web_setting (req, _lbladct##n,  "xgpio" #n "adct"); \
+      else \
+         revk_web_setting (req, _lblpd##n,    "xgpio" #n "pd"); \
+   } \
 } while(0)
       XGPIO_WEB(1);
       XGPIO_WEB(2);
@@ -3544,15 +3662,151 @@ revk_web_extra (httpd_req_t *req, int page)
    }
 }
 
+// PWM (LEDC) helpers for additional GPIOs
+static int
+xgpio_ledc_timer_alloc (uint32_t freq)
+{
+   static uint32_t timer_freq[4] = { 0 };
+   for (int i = 0; i < 4; i++)
+      if (timer_freq[i] == freq)
+         return i;
+   for (int i = 0; i < 4; i++)
+   {
+      if (!timer_freq[i])
+      {
+         timer_freq[i] = freq;
+         ledc_timer_config_t tc = {
+            .speed_mode = LEDC_LOW_SPEED_MODE,
+            .duty_resolution = LEDC_TIMER_10_BIT,
+            .timer_num = (ledc_timer_t) i,
+            .freq_hz = freq,
+            .clk_cfg = LEDC_AUTO_CLK,
+         };
+         ledc_timer_config (&tc);
+         return i;
+      }
+   }
+   return 3;                    // fallback: reuse last timer
+}
+
+static void
+xgpio_pwm_init (int idx, int gpio_num, uint32_t freq)
+{
+   int timer = xgpio_ledc_timer_alloc (freq ? freq : 1000);
+   ledc_channel_config_t cc = {
+      .gpio_num = gpio_num,
+      .speed_mode = LEDC_LOW_SPEED_MODE,
+      .channel = (ledc_channel_t) idx,
+      .timer_sel = (ledc_timer_t) timer,
+      .duty = 0,
+      .hpoint = 0,
+   };
+   ledc_channel_config (&cc);
+}
+
+static void
+xgpio_pwm_set (int idx, int duty_pct)
+{
+   if (duty_pct < 0)
+      duty_pct = 0;
+   if (duty_pct > 100)
+      duty_pct = 100;
+   xgpio_pwm_duty[idx] = duty_pct;
+   ledc_set_duty (LEDC_LOW_SPEED_MODE, (ledc_channel_t) idx, (duty_pct * 1023) / 100);
+   ledc_update_duty (LEDC_LOW_SPEED_MODE, (ledc_channel_t) idx);
+}
+
+static void IRAM_ATTR
+xgpio_isr_handler (void *arg)
+{
+   xgpio_intr_pending = 1;
+}
+
+static void
+xgpio_digital_input_init (int gpio_num)
+{
+   static int isr_service_installed = 0;
+   if (!isr_service_installed)
+   {
+      gpio_install_isr_service (0);
+      isr_service_installed = 1;
+   }
+   gpio_set_intr_type (gpio_num, GPIO_INTR_ANYEDGE);
+   gpio_isr_handler_add (gpio_num, xgpio_isr_handler, NULL);
+}
+
+static void
+xgpio_adc_init (int idx, int gpio_num)
+{
+   adc_unit_t unit;
+   adc_channel_t chan;
+   if (adc_oneshot_io_to_channel (gpio_num, &unit, &chan) != ESP_OK)
+      return;
+   xgpio_adc_unit[idx] = unit;
+   xgpio_adc_channel[idx] = chan;
+   adc_oneshot_unit_handle_t *handle = (unit == ADC_UNIT_1) ? &xgpio_adc1_handle : &xgpio_adc2_handle;
+   if (!*handle)
+   {
+      adc_oneshot_unit_init_cfg_t cfg = {.unit_id = unit };
+      adc_oneshot_new_unit (&cfg, handle);
+   }
+   adc_oneshot_chan_cfg_t ccfg = {.atten = ADC_ATTEN_DB_12,.bitwidth = ADC_BITWIDTH_DEFAULT };
+   adc_oneshot_config_channel (*handle, chan, &ccfg);
+}
+
+static int
+xgpio_adc_read_pct (int idx)
+{
+   adc_oneshot_unit_handle_t handle = (xgpio_adc_unit[idx] == ADC_UNIT_1) ? xgpio_adc1_handle : xgpio_adc2_handle;
+   if (!handle)
+      return 0;
+   int raw = 0;
+   if (adc_oneshot_read (handle, xgpio_adc_channel[idx], &raw) != ESP_OK)
+      return 0;
+   return (raw * 100) / 4095;
+}
+
+static void
+xgpio_adc_poll (void)
+{
+   int changed = 0;
+#define XGPIO_ADC_POLL(n) do { \
+   if (xgpio##n.set && xgpio##n##adc) { \
+      int pct = xgpio_adc_read_pct (n - 1); \
+      xgpio_adc_pct[n - 1] = pct; \
+      int thresh = xgpio##n##adct ? (int) xgpio##n##adct : 5; \
+      if (xgpio_adc_reported[n - 1] < 0 || abs (pct - xgpio_adc_reported[n - 1]) >= thresh) \
+         changed = 1; \
+   } \
+} while(0)
+   XGPIO_ADC_POLL (1);
+   XGPIO_ADC_POLL (2);
+   XGPIO_ADC_POLL (3);
+   XGPIO_ADC_POLL (4);
+   XGPIO_ADC_POLL (5);
+#undef XGPIO_ADC_POLL
+   if (changed)
+   {
+#define XGPIO_ADC_ACK(n) do { if (xgpio##n.set && xgpio##n##adc) xgpio_adc_reported[n - 1] = xgpio_adc_pct[n - 1]; } while(0)
+      XGPIO_ADC_ACK (1);
+      XGPIO_ADC_ACK (2);
+      XGPIO_ADC_ACK (3);
+      XGPIO_ADC_ACK (4);
+      XGPIO_ADC_ACK (5);
+#undef XGPIO_ADC_ACK
+      xgpio_state_send ();
+   }
+}
+
 static void
 xgpio_state_send (void)
 {
    jo_t j = jo_object_alloc ();
-   if (xgpio1.set) jo_bool (j, "xgpio1", revk_gpio_get (xgpio1));
-   if (xgpio2.set) jo_bool (j, "xgpio2", revk_gpio_get (xgpio2));
-   if (xgpio3.set) jo_bool (j, "xgpio3", revk_gpio_get (xgpio3));
-   if (xgpio4.set) jo_bool (j, "xgpio4", revk_gpio_get (xgpio4));
-   if (xgpio5.set) jo_bool (j, "xgpio5", revk_gpio_get (xgpio5));
+   if (xgpio1.set) { if (xgpio1pwm) jo_int (j, "xgpio1", xgpio_pwm_duty[0]); else if (xgpio1adc) jo_int (j, "xgpio1", xgpio_adc_pct[0]); else jo_bool (j, "xgpio1", revk_gpio_get (xgpio1)); }
+   if (xgpio2.set) { if (xgpio2pwm) jo_int (j, "xgpio2", xgpio_pwm_duty[1]); else if (xgpio2adc) jo_int (j, "xgpio2", xgpio_adc_pct[1]); else jo_bool (j, "xgpio2", revk_gpio_get (xgpio2)); }
+   if (xgpio3.set) { if (xgpio3pwm) jo_int (j, "xgpio3", xgpio_pwm_duty[2]); else if (xgpio3adc) jo_int (j, "xgpio3", xgpio_adc_pct[2]); else jo_bool (j, "xgpio3", revk_gpio_get (xgpio3)); }
+   if (xgpio4.set) { if (xgpio4pwm) jo_int (j, "xgpio4", xgpio_pwm_duty[3]); else if (xgpio4adc) jo_int (j, "xgpio4", xgpio_adc_pct[3]); else jo_bool (j, "xgpio4", revk_gpio_get (xgpio4)); }
+   if (xgpio5.set) { if (xgpio5pwm) jo_int (j, "xgpio5", xgpio_pwm_duty[4]); else if (xgpio5adc) jo_int (j, "xgpio5", xgpio_adc_pct[4]); else jo_bool (j, "xgpio5", revk_gpio_get (xgpio5)); }
    revk_state ("xgpio", &j);
 }
 
@@ -3583,12 +3837,17 @@ app_main ()
    // Additional GPIO init
 #define XGPIO_INIT(n) do { \
    if (xgpio##n.set) { \
-      if (xgpio##n##out) { \
+      if (xgpio##n##pwm) { \
+         xgpio_pwm_init (n - 1, xgpio##n.num, xgpio##n##freq); \
+      } else if (xgpio##n##adc) { \
+         xgpio_adc_init (n - 1, xgpio##n.num); \
+      } else if (xgpio##n##out) { \
          revk_gpio_output (xgpio##n, 0); \
          gpio_set_direction (xgpio##n.num, GPIO_MODE_INPUT_OUTPUT); \
       } else { \
          xgpio##n.pulldown = xgpio##n##pd; \
          revk_gpio_input (xgpio##n); \
+         xgpio_digital_input_init (xgpio##n.num); \
       } \
    } \
 } while(0)
@@ -3781,6 +4040,20 @@ app_main ()
                A/C, so we don't need this delay. We just keep reading, packets should
                come once per second, and that's our timing */
             usleep (1000000LL - (esp_timer_get_time () % 1000000LL));
+         }
+         {                         // ADC input polling + digital input ISR flag (once per second)
+            static int64_t last_adc = 0;
+            int64_t now = esp_timer_get_time ();
+            if (now - last_adc >= 1000000LL)
+            {
+               last_adc = now;
+               xgpio_adc_poll ();
+               if (xgpio_intr_pending)
+               {
+                  xgpio_intr_pending = 0;
+                  xgpio_state_send ();
+               }
+            }
          }
 #ifdef ELA
          if (ble_sensor_enabled ())
@@ -4708,6 +4981,16 @@ app_main ()
          {
             send_ha_config ();
             ha_status ();       // Update status now sent
+         }
+         if (reporting && !revk_link_down () && (xgpio1adc || xgpio2adc || xgpio3adc || xgpio4adc || xgpio5adc))
+         {                      // Periodic ADC state report
+            time_t clock = time (0);
+            static time_t last_adc_report = 0;
+            if (clock / reporting != last_adc_report / reporting)
+            {
+               last_adc_report = clock;
+               xgpio_state_send ();
+            }
          }
       }
       while (daikin.talking);

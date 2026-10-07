@@ -1,7 +1,7 @@
 // Settings
 // Generated from:-
-// main/settings.def
-// components/ESP32-RevK/settings.def
+// /home/raw/faikout-projects/faikout-Modifications/main/settings.def
+// /home/raw/faikout-projects/faikout-Modifications/components/ESP32-RevK/settings.def
 
 #include <stdint.h>
 #include "sdkconfig.h"
@@ -145,22 +145,42 @@ revk_settings_t const revk_settings[]={
  {.type=REVK_SETTINGS_UNSIGNED,.gpio=1,.name="xgpio1",.comment="Additional GPIO 1 (not set = disabled)",.len=6,.ptr=&xgpio1,.size=sizeof(revk_gpio_t),.fix=1,.set=1,.flags="- ~↓↕⇕",.hide=1},
  {.type=REVK_SETTINGS_BIT,.name="xgpio1out",.comment="GPIO 1: Output (else Input)",.len=9,.def="0",.bit=REVK_SETTINGS_BITFIELD_xgpio1out,.hide=1},
  {.type=REVK_SETTINGS_BIT,.name="xgpio1pd",.comment="GPIO 1: Pull-Down (Input only)",.len=8,.def="0",.bit=REVK_SETTINGS_BITFIELD_xgpio1pd,.hide=1},
+ {.type=REVK_SETTINGS_BIT,.name="xgpio1pwm",.comment="GPIO 1: PWM mode (implies output)",.len=9,.def="0",.bit=REVK_SETTINGS_BITFIELD_xgpio1pwm,.hide=1},
+ {.type=REVK_SETTINGS_UNSIGNED,.name="xgpio1freq",.comment="GPIO 1: PWM frequency (Hz)",.len=10,.def="1000",.ptr=&xgpio1freq,.size=sizeof(uint16_t),.hide=1},
+ {.type=REVK_SETTINGS_BIT,.name="xgpio1adc",.comment="GPIO 1: ADC mode (analog input, 0-100%)",.len=9,.def="0",.bit=REVK_SETTINGS_BITFIELD_xgpio1adc,.hide=1},
+ {.type=REVK_SETTINGS_UNSIGNED,.name="xgpio1adct",.comment="GPIO 1: ADC change threshold to report (%)",.len=10,.def="5",.ptr=&xgpio1adct,.size=sizeof(uint8_t),.live=1,.hide=1},
  {.type=REVK_SETTINGS_STRING,.name="xgpio2name",.comment="Label for Additional GPIO 2",.len=10,.ptr=&xgpio2name,.malloc=1,.hide=1},
  {.type=REVK_SETTINGS_UNSIGNED,.gpio=1,.name="xgpio2",.comment="Additional GPIO 2",.len=6,.ptr=&xgpio2,.size=sizeof(revk_gpio_t),.fix=1,.set=1,.flags="- ~↓↕⇕",.hide=1},
  {.type=REVK_SETTINGS_BIT,.name="xgpio2out",.comment="GPIO 2: Output (else Input)",.len=9,.def="0",.bit=REVK_SETTINGS_BITFIELD_xgpio2out,.hide=1},
  {.type=REVK_SETTINGS_BIT,.name="xgpio2pd",.comment="GPIO 2: Pull-Down (Input only)",.len=8,.def="0",.bit=REVK_SETTINGS_BITFIELD_xgpio2pd,.hide=1},
+ {.type=REVK_SETTINGS_BIT,.name="xgpio2pwm",.comment="GPIO 2: PWM mode (implies output)",.len=9,.def="0",.bit=REVK_SETTINGS_BITFIELD_xgpio2pwm,.hide=1},
+ {.type=REVK_SETTINGS_UNSIGNED,.name="xgpio2freq",.comment="GPIO 2: PWM frequency (Hz)",.len=10,.def="1000",.ptr=&xgpio2freq,.size=sizeof(uint16_t),.hide=1},
+ {.type=REVK_SETTINGS_BIT,.name="xgpio2adc",.comment="GPIO 2: ADC mode (analog input, 0-100%)",.len=9,.def="0",.bit=REVK_SETTINGS_BITFIELD_xgpio2adc,.hide=1},
+ {.type=REVK_SETTINGS_UNSIGNED,.name="xgpio2adct",.comment="GPIO 2: ADC change threshold to report (%)",.len=10,.def="5",.ptr=&xgpio2adct,.size=sizeof(uint8_t),.live=1,.hide=1},
  {.type=REVK_SETTINGS_STRING,.name="xgpio3name",.comment="Label for Additional GPIO 3",.len=10,.ptr=&xgpio3name,.malloc=1,.hide=1},
  {.type=REVK_SETTINGS_UNSIGNED,.gpio=1,.name="xgpio3",.comment="Additional GPIO 3",.len=6,.ptr=&xgpio3,.size=sizeof(revk_gpio_t),.fix=1,.set=1,.flags="- ~↓↕⇕",.hide=1},
  {.type=REVK_SETTINGS_BIT,.name="xgpio3out",.comment="GPIO 3: Output (else Input)",.len=9,.def="0",.bit=REVK_SETTINGS_BITFIELD_xgpio3out,.hide=1},
  {.type=REVK_SETTINGS_BIT,.name="xgpio3pd",.comment="GPIO 3: Pull-Down (Input only)",.len=8,.def="0",.bit=REVK_SETTINGS_BITFIELD_xgpio3pd,.hide=1},
+ {.type=REVK_SETTINGS_BIT,.name="xgpio3pwm",.comment="GPIO 3: PWM mode (implies output)",.len=9,.def="0",.bit=REVK_SETTINGS_BITFIELD_xgpio3pwm,.hide=1},
+ {.type=REVK_SETTINGS_UNSIGNED,.name="xgpio3freq",.comment="GPIO 3: PWM frequency (Hz)",.len=10,.def="1000",.ptr=&xgpio3freq,.size=sizeof(uint16_t),.hide=1},
+ {.type=REVK_SETTINGS_BIT,.name="xgpio3adc",.comment="GPIO 3: ADC mode (analog input, 0-100%)",.len=9,.def="0",.bit=REVK_SETTINGS_BITFIELD_xgpio3adc,.hide=1},
+ {.type=REVK_SETTINGS_UNSIGNED,.name="xgpio3adct",.comment="GPIO 3: ADC change threshold to report (%)",.len=10,.def="5",.ptr=&xgpio3adct,.size=sizeof(uint8_t),.live=1,.hide=1},
  {.type=REVK_SETTINGS_STRING,.name="xgpio4name",.comment="Label for Additional GPIO 4",.len=10,.ptr=&xgpio4name,.malloc=1,.hide=1},
  {.type=REVK_SETTINGS_UNSIGNED,.gpio=1,.name="xgpio4",.comment="Additional GPIO 4",.len=6,.ptr=&xgpio4,.size=sizeof(revk_gpio_t),.fix=1,.set=1,.flags="- ~↓↕⇕",.hide=1},
  {.type=REVK_SETTINGS_BIT,.name="xgpio4out",.comment="GPIO 4: Output (else Input)",.len=9,.def="0",.bit=REVK_SETTINGS_BITFIELD_xgpio4out,.hide=1},
  {.type=REVK_SETTINGS_BIT,.name="xgpio4pd",.comment="GPIO 4: Pull-Down (Input only)",.len=8,.def="0",.bit=REVK_SETTINGS_BITFIELD_xgpio4pd,.hide=1},
+ {.type=REVK_SETTINGS_BIT,.name="xgpio4pwm",.comment="GPIO 4: PWM mode (implies output)",.len=9,.def="0",.bit=REVK_SETTINGS_BITFIELD_xgpio4pwm,.hide=1},
+ {.type=REVK_SETTINGS_UNSIGNED,.name="xgpio4freq",.comment="GPIO 4: PWM frequency (Hz)",.len=10,.def="1000",.ptr=&xgpio4freq,.size=sizeof(uint16_t),.hide=1},
+ {.type=REVK_SETTINGS_BIT,.name="xgpio4adc",.comment="GPIO 4: ADC mode (analog input, 0-100%)",.len=9,.def="0",.bit=REVK_SETTINGS_BITFIELD_xgpio4adc,.hide=1},
+ {.type=REVK_SETTINGS_UNSIGNED,.name="xgpio4adct",.comment="GPIO 4: ADC change threshold to report (%)",.len=10,.def="5",.ptr=&xgpio4adct,.size=sizeof(uint8_t),.live=1,.hide=1},
  {.type=REVK_SETTINGS_STRING,.name="xgpio5name",.comment="Label for Additional GPIO 5",.len=10,.ptr=&xgpio5name,.malloc=1,.hide=1},
  {.type=REVK_SETTINGS_UNSIGNED,.gpio=1,.name="xgpio5",.comment="Additional GPIO 5",.len=6,.ptr=&xgpio5,.size=sizeof(revk_gpio_t),.fix=1,.set=1,.flags="- ~↓↕⇕",.hide=1},
  {.type=REVK_SETTINGS_BIT,.name="xgpio5out",.comment="GPIO 5: Output (else Input)",.len=9,.def="0",.bit=REVK_SETTINGS_BITFIELD_xgpio5out,.hide=1},
  {.type=REVK_SETTINGS_BIT,.name="xgpio5pd",.comment="GPIO 5: Pull-Down (Input only)",.len=8,.def="0",.bit=REVK_SETTINGS_BITFIELD_xgpio5pd,.hide=1},
+ {.type=REVK_SETTINGS_BIT,.name="xgpio5pwm",.comment="GPIO 5: PWM mode (implies output)",.len=9,.def="0",.bit=REVK_SETTINGS_BITFIELD_xgpio5pwm,.hide=1},
+ {.type=REVK_SETTINGS_UNSIGNED,.name="xgpio5freq",.comment="GPIO 5: PWM frequency (Hz)",.len=10,.def="1000",.ptr=&xgpio5freq,.size=sizeof(uint16_t),.hide=1},
+ {.type=REVK_SETTINGS_BIT,.name="xgpio5adc",.comment="GPIO 5: ADC mode (analog input, 0-100%)",.len=9,.def="0",.bit=REVK_SETTINGS_BITFIELD_xgpio5adc,.hide=1},
+ {.type=REVK_SETTINGS_UNSIGNED,.name="xgpio5adct",.comment="GPIO 5: ADC change threshold to report (%)",.len=10,.def="5",.ptr=&xgpio5adct,.size=sizeof(uint8_t),.live=1,.hide=1},
 #ifdef	CONFIG_REVK_SETTINGS_PASSWORD
  {.type=REVK_SETTINGS_STRING,.name="password",.comment="Settings password<br>(not sent securely so use with care)",.len=8,.ptr=&password,.malloc=1,.revk=1,.hide=1,.secret=1},
 #endif
@@ -366,14 +386,24 @@ revk_gpio_t i2cmassl={0};
 #endif
 char* xgpio1name=NULL;
 revk_gpio_t xgpio1={0};
+uint16_t xgpio1freq=0;
+uint8_t xgpio1adct=0;
 char* xgpio2name=NULL;
 revk_gpio_t xgpio2={0};
+uint16_t xgpio2freq=0;
+uint8_t xgpio2adct=0;
 char* xgpio3name=NULL;
 revk_gpio_t xgpio3={0};
+uint16_t xgpio3freq=0;
+uint8_t xgpio3adct=0;
 char* xgpio4name=NULL;
 revk_gpio_t xgpio4={0};
+uint16_t xgpio4freq=0;
+uint8_t xgpio4adct=0;
 char* xgpio5name=NULL;
 revk_gpio_t xgpio5={0};
+uint16_t xgpio5freq=0;
+uint8_t xgpio5adct=0;
 #ifdef	CONFIG_REVK_SETTINGS_PASSWORD
 char* password=NULL;
 #endif

@@ -1,7 +1,7 @@
 // Settings
 // Generated from:-
-// main/settings.def
-// components/ESP32-RevK/settings.def
+// /home/raw/faikout-projects/faikout-Modifications/main/settings.def
+// /home/raw/faikout-projects/faikout-Modifications/components/ESP32-RevK/settings.def
 
 #include <stdint.h>
 #include <stddef.h>
@@ -194,14 +194,24 @@ enum {
 #endif
  REVK_SETTINGS_BITFIELD_xgpio1out,
  REVK_SETTINGS_BITFIELD_xgpio1pd,
+ REVK_SETTINGS_BITFIELD_xgpio1pwm,
+ REVK_SETTINGS_BITFIELD_xgpio1adc,
  REVK_SETTINGS_BITFIELD_xgpio2out,
  REVK_SETTINGS_BITFIELD_xgpio2pd,
+ REVK_SETTINGS_BITFIELD_xgpio2pwm,
+ REVK_SETTINGS_BITFIELD_xgpio2adc,
  REVK_SETTINGS_BITFIELD_xgpio3out,
  REVK_SETTINGS_BITFIELD_xgpio3pd,
+ REVK_SETTINGS_BITFIELD_xgpio3pwm,
+ REVK_SETTINGS_BITFIELD_xgpio3adc,
  REVK_SETTINGS_BITFIELD_xgpio4out,
  REVK_SETTINGS_BITFIELD_xgpio4pd,
+ REVK_SETTINGS_BITFIELD_xgpio4pwm,
+ REVK_SETTINGS_BITFIELD_xgpio4adc,
  REVK_SETTINGS_BITFIELD_xgpio5out,
  REVK_SETTINGS_BITFIELD_xgpio5pd,
+ REVK_SETTINGS_BITFIELD_xgpio5pwm,
+ REVK_SETTINGS_BITFIELD_xgpio5adc,
 #ifdef	CONFIG_REVK_SETTINGS_PASSWORD
 #endif
 #ifdef  CONFIG_MDNS_MAX_INTERFACES
@@ -335,14 +345,24 @@ struct revk_settings_bits_s {
 #endif
  uint8_t xgpio1out:1;	// GPIO 1: Output (else Input)
  uint8_t xgpio1pd:1;	// GPIO 1: Pull-Down (Input only)
+ uint8_t xgpio1pwm:1;	// GPIO 1: PWM mode (implies output)
+ uint8_t xgpio1adc:1;	// GPIO 1: ADC mode (analog input, 0-100%)
  uint8_t xgpio2out:1;	// GPIO 2: Output (else Input)
  uint8_t xgpio2pd:1;	// GPIO 2: Pull-Down (Input only)
+ uint8_t xgpio2pwm:1;	// GPIO 2: PWM mode (implies output)
+ uint8_t xgpio2adc:1;	// GPIO 2: ADC mode (analog input, 0-100%)
  uint8_t xgpio3out:1;	// GPIO 3: Output (else Input)
  uint8_t xgpio3pd:1;	// GPIO 3: Pull-Down (Input only)
+ uint8_t xgpio3pwm:1;	// GPIO 3: PWM mode (implies output)
+ uint8_t xgpio3adc:1;	// GPIO 3: ADC mode (analog input, 0-100%)
  uint8_t xgpio4out:1;	// GPIO 4: Output (else Input)
  uint8_t xgpio4pd:1;	// GPIO 4: Pull-Down (Input only)
+ uint8_t xgpio4pwm:1;	// GPIO 4: PWM mode (implies output)
+ uint8_t xgpio4adc:1;	// GPIO 4: ADC mode (analog input, 0-100%)
  uint8_t xgpio5out:1;	// GPIO 5: Output (else Input)
  uint8_t xgpio5pd:1;	// GPIO 5: Pull-Down (Input only)
+ uint8_t xgpio5pwm:1;	// GPIO 5: PWM mode (implies output)
+ uint8_t xgpio5adc:1;	// GPIO 5: ADC mode (analog input, 0-100%)
 #ifdef	CONFIG_REVK_SETTINGS_PASSWORD
 #endif
 #ifdef  CONFIG_MDNS_MAX_INTERFACES
@@ -535,22 +555,42 @@ extern char* xgpio1name;	// Label for Additional GPIO 1
 extern revk_gpio_t xgpio1;	// Additional GPIO 1 (not set = disabled)
 #define	xgpio1out	revk_settings_bits.xgpio1out
 #define	xgpio1pd	revk_settings_bits.xgpio1pd
+#define	xgpio1pwm	revk_settings_bits.xgpio1pwm
+extern uint16_t xgpio1freq;	// GPIO 1: PWM frequency (Hz)
+#define	xgpio1adc	revk_settings_bits.xgpio1adc
+extern uint8_t xgpio1adct;	// GPIO 1: ADC change threshold to report (%)
 extern char* xgpio2name;	// Label for Additional GPIO 2
 extern revk_gpio_t xgpio2;	// Additional GPIO 2
 #define	xgpio2out	revk_settings_bits.xgpio2out
 #define	xgpio2pd	revk_settings_bits.xgpio2pd
+#define	xgpio2pwm	revk_settings_bits.xgpio2pwm
+extern uint16_t xgpio2freq;	// GPIO 2: PWM frequency (Hz)
+#define	xgpio2adc	revk_settings_bits.xgpio2adc
+extern uint8_t xgpio2adct;	// GPIO 2: ADC change threshold to report (%)
 extern char* xgpio3name;	// Label for Additional GPIO 3
 extern revk_gpio_t xgpio3;	// Additional GPIO 3
 #define	xgpio3out	revk_settings_bits.xgpio3out
 #define	xgpio3pd	revk_settings_bits.xgpio3pd
+#define	xgpio3pwm	revk_settings_bits.xgpio3pwm
+extern uint16_t xgpio3freq;	// GPIO 3: PWM frequency (Hz)
+#define	xgpio3adc	revk_settings_bits.xgpio3adc
+extern uint8_t xgpio3adct;	// GPIO 3: ADC change threshold to report (%)
 extern char* xgpio4name;	// Label for Additional GPIO 4
 extern revk_gpio_t xgpio4;	// Additional GPIO 4
 #define	xgpio4out	revk_settings_bits.xgpio4out
 #define	xgpio4pd	revk_settings_bits.xgpio4pd
+#define	xgpio4pwm	revk_settings_bits.xgpio4pwm
+extern uint16_t xgpio4freq;	// GPIO 4: PWM frequency (Hz)
+#define	xgpio4adc	revk_settings_bits.xgpio4adc
+extern uint8_t xgpio4adct;	// GPIO 4: ADC change threshold to report (%)
 extern char* xgpio5name;	// Label for Additional GPIO 5
 extern revk_gpio_t xgpio5;	// Additional GPIO 5
 #define	xgpio5out	revk_settings_bits.xgpio5out
 #define	xgpio5pd	revk_settings_bits.xgpio5pd
+#define	xgpio5pwm	revk_settings_bits.xgpio5pwm
+extern uint16_t xgpio5freq;	// GPIO 5: PWM frequency (Hz)
+#define	xgpio5adc	revk_settings_bits.xgpio5adc
+extern uint8_t xgpio5adct;	// GPIO 5: ADC change threshold to report (%)
 #ifdef	CONFIG_REVK_SETTINGS_PASSWORD
 extern char* password;	// Settings password<br>(not sent securely so use with care)
 #endif
@@ -820,22 +860,42 @@ enum {
 #define REVK_SETTINGS_XGPIO1
 #define REVK_SETTINGS_XGPIO1OUT
 #define REVK_SETTINGS_XGPIO1PD
+#define REVK_SETTINGS_XGPIO1PWM
+#define REVK_SETTINGS_XGPIO1FREQ
+#define REVK_SETTINGS_XGPIO1ADC
+#define REVK_SETTINGS_XGPIO1ADCT
 #define REVK_SETTINGS_XGPIO2NAME
 #define REVK_SETTINGS_XGPIO2
 #define REVK_SETTINGS_XGPIO2OUT
 #define REVK_SETTINGS_XGPIO2PD
+#define REVK_SETTINGS_XGPIO2PWM
+#define REVK_SETTINGS_XGPIO2FREQ
+#define REVK_SETTINGS_XGPIO2ADC
+#define REVK_SETTINGS_XGPIO2ADCT
 #define REVK_SETTINGS_XGPIO3NAME
 #define REVK_SETTINGS_XGPIO3
 #define REVK_SETTINGS_XGPIO3OUT
 #define REVK_SETTINGS_XGPIO3PD
+#define REVK_SETTINGS_XGPIO3PWM
+#define REVK_SETTINGS_XGPIO3FREQ
+#define REVK_SETTINGS_XGPIO3ADC
+#define REVK_SETTINGS_XGPIO3ADCT
 #define REVK_SETTINGS_XGPIO4NAME
 #define REVK_SETTINGS_XGPIO4
 #define REVK_SETTINGS_XGPIO4OUT
 #define REVK_SETTINGS_XGPIO4PD
+#define REVK_SETTINGS_XGPIO4PWM
+#define REVK_SETTINGS_XGPIO4FREQ
+#define REVK_SETTINGS_XGPIO4ADC
+#define REVK_SETTINGS_XGPIO4ADCT
 #define REVK_SETTINGS_XGPIO5NAME
 #define REVK_SETTINGS_XGPIO5
 #define REVK_SETTINGS_XGPIO5OUT
 #define REVK_SETTINGS_XGPIO5PD
+#define REVK_SETTINGS_XGPIO5PWM
+#define REVK_SETTINGS_XGPIO5FREQ
+#define REVK_SETTINGS_XGPIO5ADC
+#define REVK_SETTINGS_XGPIO5ADCT
 #ifdef	CONFIG_REVK_SETTINGS_PASSWORD
 #define REVK_SETTINGS_PASSWORD
 #endif
@@ -980,6 +1040,6 @@ enum {
 #define	autoptemp_scale	10
 #define	i2chtemp_scale	10
 #define	i2cctemp_scale	10
-typedef uint8_t revk_setting_bits_t[28];
+typedef uint8_t revk_setting_bits_t[30];
 typedef uint8_t revk_setting_group_t[3];
 extern const char revk_settings_secret[];

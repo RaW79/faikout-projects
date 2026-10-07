@@ -163,19 +163,39 @@ s       xgpio1name  .hide      // Label for Additional GPIO 1
 gpio    xgpio1      .hide      // Additional GPIO 1 (not set = disabled)
 bit     xgpio1out   0   .hide  // GPIO 1: Output (else Input)
 bit     xgpio1pd    0   .hide  // GPIO 1: Pull-Down (Input only)
+bit     xgpio1pwm   0   .hide  // GPIO 1: PWM mode (implies output)
+u16     xgpio1freq  1000 .hide // GPIO 1: PWM frequency (Hz)
+bit     xgpio1adc   0   .hide  // GPIO 1: ADC mode (analog input, 0-100%)
+u8      xgpio1adct  5   .live .hide // GPIO 1: ADC change threshold to report (%)
 s       xgpio2name  .hide      // Label for Additional GPIO 2
 gpio    xgpio2      .hide      // Additional GPIO 2
 bit     xgpio2out   0   .hide  // GPIO 2: Output (else Input)
 bit     xgpio2pd    0   .hide  // GPIO 2: Pull-Down (Input only)
+bit     xgpio2pwm   0   .hide  // GPIO 2: PWM mode (implies output)
+u16     xgpio2freq  1000 .hide // GPIO 2: PWM frequency (Hz)
+bit     xgpio2adc   0   .hide  // GPIO 2: ADC mode (analog input, 0-100%)
+u8      xgpio2adct  5   .live .hide // GPIO 2: ADC change threshold to report (%)
 s       xgpio3name  .hide      // Label for Additional GPIO 3
 gpio    xgpio3      .hide      // Additional GPIO 3
 bit     xgpio3out   0   .hide  // GPIO 3: Output (else Input)
 bit     xgpio3pd    0   .hide  // GPIO 3: Pull-Down (Input only)
+bit     xgpio3pwm   0   .hide  // GPIO 3: PWM mode (implies output)
+u16     xgpio3freq  1000 .hide // GPIO 3: PWM frequency (Hz)
+bit     xgpio3adc   0   .hide  // GPIO 3: ADC mode (analog input, 0-100%)
+u8      xgpio3adct  5   .live .hide // GPIO 3: ADC change threshold to report (%)
 s       xgpio4name  .hide      // Label for Additional GPIO 4
 gpio    xgpio4      .hide      // Additional GPIO 4
 bit     xgpio4out   0   .hide  // GPIO 4: Output (else Input)
 bit     xgpio4pd    0   .hide  // GPIO 4: Pull-Down (Input only)
+bit     xgpio4pwm   0   .hide  // GPIO 4: PWM mode (implies output)
+u16     xgpio4freq  1000 .hide // GPIO 4: PWM frequency (Hz)
+bit     xgpio4adc   0   .hide  // GPIO 4: ADC mode (analog input, 0-100%)
+u8      xgpio4adct  5   .live .hide // GPIO 4: ADC change threshold to report (%)
 s       xgpio5name  .hide      // Label for Additional GPIO 5
 gpio    xgpio5      .hide      // Additional GPIO 5
 bit     xgpio5out   0   .hide  // GPIO 5: Output (else Input)
 bit     xgpio5pd    0   .hide  // GPIO 5: Pull-Down (Input only)
+bit     xgpio5pwm   0   .hide  // GPIO 5: PWM mode (implies output)
+u16     xgpio5freq  1000 .hide // GPIO 5: PWM frequency (Hz)
+bit     xgpio5adc   0   .hide  // GPIO 5: ADC mode (analog input, 0-100%)
+u8      xgpio5adct  5   .live .hide // GPIO 5: ADC change threshold to report (%)
