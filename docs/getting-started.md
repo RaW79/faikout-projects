@@ -181,6 +181,8 @@ Configure the following two Faikout settings:
 
 If the sensor publishes a plain number (not JSON), leave `auto.payload` empty.
 
+**Important:** The sensor must publish to its topic at least once within the tcontrol interval – even if the temperature value has not changed. The Faikout only keeps the external temperature active as long as messages arrive regularly. If no message is received within tcontrol, it falls back to its internal sensor.
+
 > **Note:** In all MQTT-based cases, the actual room temperature sensor must be available, a central MQTT broker must be installed, and the Faikout must be connected to it – this is a prerequisite for any MQTT-based function.
 
 ---
@@ -355,6 +357,8 @@ Folgende zwei Faikout-Einstellungen konfigurieren:
 | `auto.payload` | z.B. `temperature` | Der JSON-Feldname, der den Temperaturwert enthält |
 
 Veröffentlicht der Sensor eine reine Zahl (kein JSON), `auto.payload` leer lassen.
+
+**Wichtig:** Der Sensor muss sein Topic mindestens einmal innerhalb des tcontrol-Intervalls beschreiben – auch wenn sich der Temperaturwert nicht geändert hat. Das Faikout hält die externe Temperatur nur aktiv, solange regelmäßig Nachrichten eintreffen. Bleibt eine Nachricht aus, fällt es auf den internen Sensor zurück.
 
 > **Hinweis:** In allen MQTT-basierten Fällen muss der tatsächliche Raumsensor verfügbar sein, ein zentraler MQTT-Broker installiert sein und das Faikout dort verbunden sein – das ist obligatorisch für jede MQTT-Funktion.
 
