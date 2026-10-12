@@ -145,9 +145,9 @@ There are three ways to provide an external temperature:
 - **MQTT push**: If you already have a room sensor connected to your MQTT broker, you can send its temperature value directly to the Faikout via an automation (ioBroker, Home Assistant, etc.).
 - **MQTT subscribe (auto.topic)**: The Faikout subscribes directly to the sensor's MQTT topic itself – no external automation needed.
 
-**Important:** The temperature must be updated **cyclically** (interval < 1 minute). If no update arrives within that interval (configured tcontrol setting), the Faikout will stop using the external temperature and fall back to its internal sensor.
-
 #### MQTT push
+
+**Important:** The temperature must be sent **cyclically** (interval < 1 minute), not event-triggered. If no update arrives within that interval (configured tcontrol setting), the Faikout will stop using the external temperature and fall back to its internal sensor.
 
 You need the hostname of your Faikout module and publish via your MQTT broker (to which the Faikout is also connected):
 
@@ -320,9 +320,9 @@ Es gibt drei Wege, eine externe Temperatur bereitzustellen:
 - **MQTT Push**: Hat man bereits einen Raumsensor am MQTT-Broker, kann man dessen Temperaturwert per Automation (ioBroker, Home Assistant etc.) direkt zum Faikout schicken.
 - **MQTT Subscribe (auto.topic)**: Das Faikout abonniert das MQTT-Topic des Sensors selbst – keine externe Automation notwendig.
 
-**Wichtig:** Die Temperatur muss **zyklisch** aktualisiert werden (Intervall < 1 Minute). Bleibt ein Update aus (konfigurierbare tcontrol-Einstellung), hört das Faikout eigenständig auf, die externe Temperatur zu verwenden, und fällt auf seinen internen Sensor zurück.
-
 #### MQTT Push
+
+**Wichtig:** Die Temperatur muss **zyklisch** gesendet werden (Intervall < 1 Minute), nicht eventgetriggert. Bleibt ein Update aus (konfigurierbare tcontrol-Einstellung), hört das Faikout eigenständig auf, die externe Temperatur zu verwenden, und fällt auf seinen internen Sensor zurück.
 
 Dazu braucht man den Hostnamen des Faikout-Moduls und veröffentlicht über den MQTT-Broker (mit dem das Faikout verbunden ist):
 
