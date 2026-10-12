@@ -140,11 +140,14 @@ Save – the Faikout registers itself automatically in Home Assistant via MQTT a
 
 The Faikout offers the option to use an external temperature sensor in [Mode 2: Control mode](#mode-2-control-mode) – both in **AutoControl** and **Thermostat mode**. Due to its design, the temperature sensor built into the indoor unit can only provide an approximation and rarely reflects the actual and highly individual room conditions.
 
-There are two ways to provide an external temperature:
+There are three ways to provide an external temperature:
 - **Bluetooth**: Various BLE sensors can be paired directly with the Faikout module.
-- **MQTT**: If you already have a room sensor connected to your MQTT broker, you can send its temperature value directly to the Faikout.
+- **MQTT push**: If you already have a room sensor connected to your MQTT broker, you can send its temperature value directly to the Faikout via an automation (ioBroker, Home Assistant, etc.).
+- **MQTT subscribe (auto.topic)**: The Faikout subscribes directly to the sensor's MQTT topic itself – no external automation needed.
 
-**Important:** The temperature must be sent **cyclically** (interval < 1 minute), not event-triggered. If no update arrives within that interval (configured tcontrol setting), the Faikout will stop using the external temperature and fall back to its internal sensor.
+**Important:** The temperature must be updated **cyclically** (interval < 1 minute). If no update arrives within that interval (configured tcontrol setting), the Faikout will stop using the external temperature and fall back to its internal sensor.
+
+#### MQTT push
 
 You need the hostname of your Faikout module and publish via your MQTT broker (to which the Faikout is also connected):
 
@@ -153,19 +156,32 @@ You need the hostname of your Faikout module and publish via your MQTT broker (t
 
 Even minor differences or errors in the topic or payload spelling will silently prevent this from working.
 
-#### Example: ioBroker Blockly
+##### Example: ioBroker Blockly
 
 ![ioBroker Blockly external temperature](img/ext-temp-iobroker.png)
 
 > **Note:** If you are using the [ioBroker Integration / Alias Generator](https://codeberg.org/RaW07/faikout-iobroker), this is already fully implemented. Simply set the alias point `ENV_SET` periodically – MQTT handling is included.
 
-#### Example: Home Assistant
+##### Example: Home Assistant
 
 Go to **Settings → Automations & Scenes** and create a new automation:
 
 ![Home Assistant automation external temperature](img/ext-temp-ha.png)
 
-> **Note:** In both cases, the actual room temperature sensor must be available, a central MQTT broker must be installed, and the Faikout must be connected to it – this is a prerequisite for any MQTT-based function.
+#### MQTT subscribe (auto.topic / auto.payload)
+
+With this method the Faikout subscribes to the sensor's MQTT topic directly – no automation layer is needed to forward the value.
+
+Configure the following two Faikout settings:
+
+| Setting | Value | Description |
+|---|---|---|
+| `auto.topic` | e.g. `zigbee2mqtt/room-sensor` | The MQTT topic the sensor publishes to |
+| `auto.payload` | e.g. `temperature` | The JSON field name containing the temperature value |
+
+If the sensor publishes a plain number (not JSON), leave `auto.payload` empty.
+
+> **Note:** In all MQTT-based cases, the actual room temperature sensor must be available, a central MQTT broker must be installed, and the Faikout must be connected to it – this is a prerequisite for any MQTT-based function.
 
 ---
 
@@ -299,11 +315,14 @@ Speichern – das Faikout registriert sich automatisch in Home Assistant über M
 
 Das Faikout-Modul bietet die Möglichkeit, im Modus 2: Regelbetrieb – sowohl im **AutoControl** als auch im **Thermostatmodus** – einen externen Temperatursensor zu verwenden. Bauartbedingt kann der Temperatursensor im Innengerät nur eine Annäherung sein und entspricht selten den tatsächlichen und höchst individuellen räumlichen Gegebenheiten.
 
-Es gibt zwei Wege, eine externe Temperatur bereitzustellen:
+Es gibt drei Wege, eine externe Temperatur bereitzustellen:
 - **Bluetooth**: Diverse BLE-Sensoren können direkt mit dem Faikout-Modul gekoppelt werden.
-- **MQTT**: Hat man bereits einen Raumsensor, der am MQTT-Broker angebunden ist, kann man dessen Temperaturwert direkt zum Faikout schicken.
+- **MQTT Push**: Hat man bereits einen Raumsensor am MQTT-Broker, kann man dessen Temperaturwert per Automation (ioBroker, Home Assistant etc.) direkt zum Faikout schicken.
+- **MQTT Subscribe (auto.topic)**: Das Faikout abonniert das MQTT-Topic des Sensors selbst – keine externe Automation notwendig.
 
-**Wichtig:** Die Temperatur muss **zyklisch** (Intervall < 1 Minute) gesendet werden, nicht eventgetriggert. Bleibt ein Update aus (konfigurierbare tcontrol-Einstellung), hört das Faikout eigenständig auf, die externe Temperatur zu verwenden, und fällt auf seinen internen Sensor zurück.
+**Wichtig:** Die Temperatur muss **zyklisch** aktualisiert werden (Intervall < 1 Minute). Bleibt ein Update aus (konfigurierbare tcontrol-Einstellung), hört das Faikout eigenständig auf, die externe Temperatur zu verwenden, und fällt auf seinen internen Sensor zurück.
+
+#### MQTT Push
 
 Dazu braucht man den Hostnamen des Faikout-Moduls und veröffentlicht über den MQTT-Broker (mit dem das Faikout verbunden ist):
 
@@ -312,17 +331,30 @@ Dazu braucht man den Hostnamen des Faikout-Moduls und veröffentlicht über den 
 
 Kleinste Unterschiede oder Fehler in der Schreibweise von Topic oder Payload führen zum Misserfolg.
 
-#### Beispiel: ioBroker Blockly
+##### Beispiel: ioBroker Blockly
 
 ![ioBroker Blockly externer Temperatursensor](img/ext-temp-iobroker.png)
 
 > **Hinweis:** Wer die [ioBroker Integration / den Alias Generator](https://codeberg.org/RaW07/faikout-iobroker) verwendet, muss nichts weiter tun – das ist bereits vollständig implementiert. Einfach den Alias-Punkt `ENV_SET` zyklisch setzen, die MQTT-Verarbeitung ist enthalten.
 
-#### Beispiel: Home Assistant
+##### Beispiel: Home Assistant
 
 Unter **Einstellungen → Automationen & Szenen** eine neue Automation erstellen:
 
 ![Home Assistant Automation externer Temperatursensor](img/ext-temp-ha.png)
 
-> **Hinweis:** In beiden Fällen muss der tatsächliche Raumsensor verfügbar sein, ein zentraler MQTT-Broker installiert sein und das Faikout dort verbunden sein – das ist obligatorisch für jede MQTT-Funktion.
+#### MQTT Subscribe (auto.topic / auto.payload)
+
+Bei dieser Methode abonniert das Faikout das MQTT-Topic des Sensors selbst – kein Automations-Layer zum Weiterleiten des Werts notwendig.
+
+Folgende zwei Faikout-Einstellungen konfigurieren:
+
+| Einstellung | Wert | Beschreibung |
+|---|---|---|
+| `auto.topic` | z.B. `zigbee2mqtt/raum-sensor` | Das MQTT-Topic, auf dem der Sensor veröffentlicht |
+| `auto.payload` | z.B. `temperature` | Der JSON-Feldname, der den Temperaturwert enthält |
+
+Veröffentlicht der Sensor eine reine Zahl (kein JSON), `auto.payload` leer lassen.
+
+> **Hinweis:** In allen MQTT-basierten Fällen muss der tatsächliche Raumsensor verfügbar sein, ein zentraler MQTT-Broker installiert sein und das Faikout dort verbunden sein – das ist obligatorisch für jede MQTT-Funktion.
 
