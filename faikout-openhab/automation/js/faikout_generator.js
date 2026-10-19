@@ -6,8 +6,9 @@
 //
 // Place this file in: /etc/openhab/automation/js/
 //
-// Runs on system startup. Queries the Faikout HTTP API to detect
-// which features are active, then creates:
+// Runs on system startup. Queries the Faikout HTTP pages to detect
+// which features are active (same logic as the ioBroker generator),
+// then creates:
 //   - A MQTT Broker Thing
 //   - A Generic MQTT Thing for the Faikout with per-feature channels
 //   - Items linked to those channels
@@ -23,7 +24,8 @@ const { rules, triggers, actions } = require('openhab');
 // CONFIGURATION – adjust to your setup
 // ================================================================
 const CFG = {
-  faikoutHost:    '9C139EEF6D28',
+  faikoutHost:    'F0F5BD731830',   // Device ID – used in MQTT topics
+  faikoutIp:      '192.168.7.34',   // IP address – used for HTTP feature detection
   mqttBrokerHost: '192.168.7.20',
   mqttBrokerPort: 1884,
   mqttUsername:   '',
@@ -31,41 +33,157 @@ const CFG = {
   ohRestUrl:      'http://localhost:8080/rest',
   ohApiToken:     'oh.claude.i3gIpRK2HwXmOEDpFWpFN53Xys5BkAgLkAaDlOY9tVGE2Zqg9EM0LtmGoC9FL6v1jlWOqh2d0Hvhp3qldw',
   itemPrefix:     'Faikout',
-  brokerUID:      'mqtt:broker:faikout-broker',
-  deviceUID:      'mqtt:topic:faikout-broker:faikout',
+  brokerUID:           'mqtt:broker:faikout-broker',
+  deviceUID:           'mqtt:topic:faikout-broker:faikout',
+  createConfigChannels: true,   // set false to skip write-only config channels
 };
 
 // ================================================================
 // MQTT TOPICS
 // ================================================================
-const STATUS_TOPIC  = 'status/'  + CFG.faikoutHost;
-const COMMAND_TOPIC = 'command/' + CFG.faikoutHost + '/control';
+const STATUS_TOPIC  = 'state/'   + CFG.faikoutHost + '/status';
+const COMMAND_TOPIC = 'setting/' + CFG.faikoutHost;
 
 // ================================================================
 // CHANNEL DEFINITIONS
-// All known Faikout fields. The generator queries the Faikout HTTP
-// API and only creates channels for fields present in the response.
+// All known Faikout fields. Only channels whose key appears in the
+// device feature scan (or the whitelist) will be created.
+//
+//  id          label                        type      key           rw
 // ================================================================
-//  id        label                  itemType  jsonKey    writable
 const CHANNELS = [
-  { id: 'power',    label: 'Power',            type: 'Switch', key: 'power',    rw: true  },
-  { id: 'mode',     label: 'Mode',             type: 'String', key: 'mode',     rw: true  },
-  { id: 'fan',      label: 'Fan Speed',        type: 'String', key: 'fan',      rw: true  },
-  { id: 'temp',     label: 'Target Temp',      type: 'Number', key: 'temp',     rw: true  },
-  { id: 'home',     label: 'Return Air Temp',  type: 'Number', key: 'home',     rw: false },
-  { id: 'env',      label: 'External Temp',    type: 'Number', key: 'env',      rw: false },
-  { id: 'inlet',    label: 'Inlet Temp',       type: 'Number', key: 'inlet',    rw: false },
-  { id: 'liquid',   label: 'Liquid Temp',      type: 'Number', key: 'liquid',   rw: false },
-  { id: 'louvre',   label: 'Louvre',           type: 'String', key: 'louvre',   rw: true  },
-  { id: 'swingh',   label: 'Swing Horizontal', type: 'Switch', key: 'swingh',   rw: true  },
-  { id: 'swingv',   label: 'Swing Vertical',   type: 'Switch', key: 'swingv',   rw: true  },
-  { id: 'powerful', label: 'Powerful',         type: 'Switch', key: 'powerful', rw: true  },
-  { id: 'econo',    label: 'Econo',            type: 'Switch', key: 'econo',    rw: true  },
-  { id: 'streamer', label: 'Streamer',         type: 'Switch', key: 'streamer', rw: true  },
-  { id: 'comfort',  label: 'Comfort Airflow',  type: 'Switch', key: 'comfort',  rw: true  },
-  { id: 'demand',   label: 'Demand Control',   type: 'Switch', key: 'demand',   rw: true  },
-  { id: 'slave',    label: 'Slave Mode',       type: 'Switch', key: 'slave',    rw: false },
+  // ---- Control ----
+  { id: 'power',       label: 'Power',                   type: 'Switch', key: 'power',       rw: true  },
+  { id: 'mode',        label: 'Mode',                    type: 'String', key: 'mode',        rw: true  },
+  { id: 'fan',         label: 'Fan Speed',               type: 'String', key: 'fan',         rw: true  },
+  { id: 'temp',        label: 'Target Temp',             type: 'Number', key: 'temp',        rw: true  },
+  { id: 'swingv',      label: 'Swing Vertical',          type: 'Switch', key: 'swingv',      rw: true  },
+  { id: 'swingh',      label: 'Swing Horizontal',        type: 'Switch', key: 'swingh',      rw: true  },
+  { id: 'powerful',    label: 'Powerful',                type: 'Switch', key: 'powerful',    rw: true  },
+  { id: 'econo',       label: 'Econo',                   type: 'Switch', key: 'econo',       rw: true  },
+  { id: 'comfort',     label: 'Comfort Airflow',         type: 'Switch', key: 'comfort',     rw: true  },
+  { id: 'streamer',    label: 'Streamer',                type: 'Switch', key: 'streamer',    rw: true  },
+  { id: 'led',         label: 'LED',                     type: 'Switch', key: 'led',         rw: true  },
+  { id: 'quiet',       label: 'Quiet Mode',              type: 'Switch', key: 'quiet',       rw: true  },
+  { id: 'demand',      label: 'Demand Control',          type: 'Number', key: 'demand',      rw: true  },
+  { id: 'louvre',      label: 'Louvre',                  type: 'String', key: 'louvre',      rw: true  },
+  { id: 'humidify',    label: 'Humidifier',              type: 'String', key: 'humidify',    rw: true  },
+  // ---- Auto / timer ----
+  { id: 'autoe',       label: 'Auto Mode Enable',        type: 'Switch', key: 'autoe',       rw: true  },
+  { id: 'autop',       label: 'Auto Power On/Off',       type: 'Switch', key: 'autop',       rw: true  },
+  { id: 'autot',       label: 'Auto Target Temp',        type: 'Number', key: 'autot',       rw: true  },
+  { id: 'autor',       label: 'Auto Hysteresis',         type: 'Number', key: 'autor',       rw: true  },
+  // ---- Temperatures (read-only) ----
+  { id: 'home',        label: 'Return Air Temp',         type: 'Number', key: 'home',        rw: false },
+  { id: 'env',         label: 'Room Temp (sensor)',      type: 'Number', key: 'env',         rw: false },
+  { id: 'outside',     label: 'Outdoor Temp',            type: 'Number', key: 'outside',     rw: false },
+  { id: 'inlet',       label: 'Inlet Temp',              type: 'Number', key: 'inlet',       rw: false },
+  { id: 'liquid',      label: 'Liquid Temp',             type: 'Number', key: 'liquid',      rw: false },
+  // ---- Performance (read-only) ----
+  { id: 'comp',        label: 'Compressor Speed',        type: 'Number', key: 'comp',        rw: false },
+  { id: 'fanrpm',      label: 'Fan RPM',                 type: 'Number', key: 'fanrpm',      rw: false },
+  { id: 'consumption', label: 'Power Consumption',       type: 'Number', key: 'consumption', rw: false },
+  { id: 'anglev',      label: 'Vertical Vane Angle',     type: 'Number', key: 'anglev',      rw: false },
+  { id: 'angleh',      label: 'Horizontal Vane Angle',   type: 'Number', key: 'angleh',      rw: false },
+  { id: 'hum',         label: 'Humidity',                type: 'Number', key: 'hum',         rw: false },
+  // ---- Energy meters (read-only) ----
+  { id: 'Whheating',   label: 'Heating Energy',          type: 'Number', key: 'Whheating',   rw: false },
+  { id: 'Whcooling',   label: 'Cooling Energy',          type: 'Number', key: 'Whcooling',   rw: false },
+  { id: 'Whoutside',   label: 'Outdoor Unit Energy',     type: 'Number', key: 'Whoutside',   rw: false },
+  // ---- Status flags (read-only) ----
+  { id: 'slave',       label: 'Slave Mode',              type: 'Switch', key: 'slave',       rw: false },
+  { id: 'antifreeze',  label: 'Anti-Freeze Active',      type: 'Switch', key: 'antifreeze',  rw: false },
+  // ---- BLE sensor (optional) ----
+  { id: 'ble_temp',    label: 'BLE Temperature',         type: 'Number', key: 'ble.temp',    rw: false },
+  { id: 'ble_hum',     label: 'BLE Humidity',            type: 'Number', key: 'ble.hum',     rw: false },
+  { id: 'ble_bat',     label: 'BLE Battery',             type: 'Number', key: 'ble.bat',     rw: false },
 ];
+
+// Fields always included even if not found via o.xyz scan
+// (present in status JSON but not always referenced in the UI script)
+const FIELD_WHITELIST = new Set(['comp', 'outside', 'anglev', 'angleh', 'consumption']);
+
+// ================================================================
+// OPTIONAL CONFIG CHANNELS (write-only – not in MQTT status JSON)
+// Set CFG.createConfigChannels = true to enable.
+// These send directly to setting/ID/<key> – raw value payload.
+// ================================================================
+const CONFIG_CHANNELS = [
+  { id: 'cfg_heatback',   label: 'Heat Pull-Back',           type: 'Number', key: 'heatback'   },
+  { id: 'cfg_heatover',   label: 'Heat Push-Over',           type: 'Number', key: 'heatover'   },
+  { id: 'cfg_coolback',   label: 'Cool Pull-Back',           type: 'Number', key: 'coolback'   },
+  { id: 'cfg_coolover',   label: 'Cool Push-Over',           type: 'Number', key: 'coolover'   },
+  { id: 'cfg_tcontrol',   label: 'Control Timeout',          type: 'Number', key: 'tcontrol'   },
+  { id: 'cfg_thermref',   label: 'Inlet/Home Blend',         type: 'Number', key: 'thermref'   },
+  { id: 'cfg_tmin',       label: 'Min Temperature',          type: 'Number', key: 'tmin'       },
+  { id: 'cfg_tmax',       label: 'Max Temperature',          type: 'Number', key: 'tmax'       },
+  { id: 'cfg_tcoolmin',   label: 'Min Temp Cooling',         type: 'Number', key: 'tcoolmin'   },
+  { id: 'cfg_theatmax',   label: 'Max Temp Heating',         type: 'Number', key: 'theatmax'   },
+  { id: 'cfg_frosttemp',  label: 'Frost Protection',         type: 'Number', key: 'frosttemp'  },
+  { id: 'cfg_minoutside', label: 'Min Outdoor Temp',         type: 'Number', key: 'minoutside' },
+  { id: 'cfg_switchtemp', label: 'Switch-Point Offset',      type: 'Number', key: 'switchtemp' },
+  { id: 'cfg_pushtemp',   label: 'Push-Point Offset',        type: 'Number', key: 'pushtemp'   },
+  { id: 'cfg_reporting',  label: 'Report Interval',          type: 'Number', key: 'reporting'  },
+  { id: 'cfg_lockmode',   label: 'Lock Heat/Cool Mode',      type: 'Switch', key: 'lockmode'   },
+];
+
+// ================================================================
+// HTTP HELPER (synchronous – openHAB GraalVM JS)
+// ================================================================
+function httpGet(url) {
+  try {
+    return actions.HTTP.sendHttpGetRequest(url, 6000);
+  } catch (e) {
+    console.warn('[faikout-gen] HTTP GET ' + url + ' failed: ' + e);
+    return null;
+  }
+}
+
+// ================================================================
+// FEATURE DETECTION – same logic as ioBroker generator
+//   1. Parse main page for o.fieldname references
+//   2. Parse extras page for disabled features and BLE flag
+//   3. Apply whitelist
+// Returns a Set of active field keys, or null if device unreachable.
+// ================================================================
+function fetchDeviceFields(ip) {
+  console.log('[faikout-gen] Querying Faikout at http://' + ip + '/');
+  const mainHtml   = httpGet('http://' + ip + '/');
+  const extrasHtml = httpGet('http://' + ip + '/revk-settings?_page=-2') || '';
+
+  if (!mainHtml) {
+    console.warn('[faikout-gen] Faikout not reachable – using all channels as fallback.');
+    return null;
+  }
+
+  // Extract all o.fieldname references from the WebSocket handler
+  const matches = mainHtml.match(/\bo\.([a-zA-Z]\w*)\b/g) || [];
+  const found = new Set(matches.map(function(m) { return m.slice(2).toLowerCase(); }));
+
+  // BLE: only activate sub-keys if bleenable is checked on extras page
+  const bleEnabled = /id="bleenable"[^>]*checked/.test(extrasHtml);
+  if (bleEnabled && found.has('ble')) {
+    found.add('ble_temp');
+    found.add('ble_hum');
+    found.add('ble_bat');
+  } else {
+    found.delete('ble');
+  }
+
+  // Remove features disabled via "noXXX" checkbox on extras page
+  for (var i = 0; i < CHANNELS.length; i++) {
+    var key = CHANNELS[i].key;
+    if (new RegExp('id="no' + key + '"[^>]*checked').test(extrasHtml)) {
+      found.delete(key);
+    }
+  }
+
+  // Always include whitelisted fields
+  FIELD_WHITELIST.forEach(function(f) { found.add(f); });
+
+  console.log('[faikout-gen] Detected fields: ' + Array.from(found).join(', '));
+  return found;
+}
 
 // ================================================================
 // REST HELPERS
@@ -108,23 +226,6 @@ function ohPut(path, body) {
 }
 
 // ================================================================
-// FAIKOUT HTTP API – detect active features
-// ================================================================
-function fetchFaikoutStatus() {
-  // Faikout exposes device state at /api (RevK firmware convention).
-  // If this returns null or HTML, adjust the endpoint to /status.
-  const url = 'http://' + CFG.faikoutHost + '/api';
-  console.log('[faikout-gen] Querying Faikout at ' + url);
-  try {
-    const raw = actions.HTTP.sendHttpGetRequest(url, 5000);
-    if (raw) return JSON.parse(raw);
-  } catch (e) {
-    console.warn('[faikout-gen] Faikout not reachable: ' + e);
-  }
-  return null;
-}
-
-// ================================================================
 // MQTT BROKER THING
 // ================================================================
 function ensureBrokerThing() {
@@ -161,38 +262,39 @@ function channelTypeUID(type) {
 }
 
 function channelConfig(ch) {
+  // Config channels are write-only – no stateTopic
+  if (ch.cfg) {
+    const cfg = { commandTopic: COMMAND_TOPIC + '/' + ch.key };
+    if (ch.type === 'Switch') { cfg.on = '1'; cfg.off = '0'; }
+    return cfg;
+  }
   const cfg = {
     stateTopic:            STATUS_TOPIC,
     transformationPattern: 'JSONPATH:$.' + ch.key,
   };
   if (ch.rw) {
-    cfg.commandTopic = COMMAND_TOPIC;
-    // Switch channels: Faikout expects true/false (not ON/OFF)
+    // RevK firmware: each setting has its own topic, raw value payload
+    cfg.commandTopic = COMMAND_TOPIC + '/' + ch.key;
     if (ch.type === 'Switch') {
       cfg.on  = 'true';
       cfg.off = 'false';
-      cfg.formatBeforePublish = '{"' + ch.key + '": %s}';
-    } else if (ch.type === 'Number') {
-      // Numeric payload, unquoted: {"temp": 22}
-      cfg.formatBeforePublish = '{"' + ch.key + '": %s}';
-    } else {
-      // String payload, quoted: {"mode": "C"}
-      cfg.formatBeforePublish = '{"' + ch.key + '": "%s"}';
     }
   }
   return cfg;
 }
 
 function ensureDeviceThing(activeChannels) {
-  const channelList = activeChannels.map(ch => ({
-    uid:            CFG.deviceUID + ':' + ch.id,
-    id:             ch.id,
-    channelTypeUID: channelTypeUID(ch.type),
-    label:          ch.label,
-    configuration:  channelConfig(ch),
-    properties:     {},
-    defaultTags:    [],
-  }));
+  const channelList = activeChannels.map(function(ch) {
+    return {
+      uid:            CFG.deviceUID + ':' + ch.id,
+      id:             ch.id,
+      channelTypeUID: channelTypeUID(ch.type),
+      label:          ch.label,
+      configuration:  channelConfig(ch),
+      properties:     {},
+      defaultTags:    [],
+    };
+  });
 
   const body = {
     UID:           CFG.deviceUID,
@@ -248,14 +350,13 @@ function ensureLink(name, channelUID) {
 function generate() {
   console.log('[faikout-gen] === Faikout Integration Generator starting ===');
 
-  // 1. Detect active features via Faikout HTTP API
-  const status = fetchFaikoutStatus();
-  let activeChannels;
-  if (status) {
-    activeChannels = CHANNELS.filter(ch => ch.key in status && status[ch.key] !== null);
-    console.log('[faikout-gen] Active channels: ' + activeChannels.map(c => c.id).join(', '));
+  // 1. Detect active features via Faikout HTTP pages
+  const found = fetchDeviceFields(CFG.faikoutIp);
+  var activeChannels;
+  if (found) {
+    activeChannels = CHANNELS.filter(function(ch) { return found.has(ch.key) || found.has(ch.id); });
+    console.log('[faikout-gen] Active channels: ' + activeChannels.map(function(c) { return c.id; }).join(', '));
   } else {
-    // Fallback: generate all channels if Faikout is not reachable at startup
     console.warn('[faikout-gen] Faikout unreachable – generating all channels as fallback.');
     activeChannels = CHANNELS;
   }
@@ -263,13 +364,19 @@ function generate() {
   // 2. MQTT Broker Thing
   ensureBrokerThing();
 
-  // 3. Faikout Device Thing with detected channels
+  // 3. Append config channels if enabled
+  if (CFG.createConfigChannels) {
+    CONFIG_CHANNELS.forEach(function(ch) { activeChannels.push(Object.assign({ cfg: true, rw: true }, ch)); });
+    console.log('[faikout-gen] Config channels enabled (+' + CONFIG_CHANNELS.length + ').');
+  }
+
+  // 4. Faikout Device Thing with all channels
   ensureDeviceThing(activeChannels);
 
-  // 4. Items + channel links
-  for (const ch of activeChannels) {
-    const name = ensureItem(ch);
-    ensureLink(name, CFG.deviceUID + ':' + ch.id);
+  // 5. Items + channel links
+  for (var i = 0; i < activeChannels.length; i++) {
+    const name = ensureItem(activeChannels[i]);
+    ensureLink(name, CFG.deviceUID + ':' + activeChannels[i].id);
   }
 
   console.log('[faikout-gen] === Done. ' + activeChannels.length + ' channel(s) created/updated. ===');
