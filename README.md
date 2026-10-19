@@ -136,7 +136,7 @@ Importfertiger **Node-RED Flow** für universelle MQTT-Anbindung. Enthält alle 
 → [codeberg.org/RaW07/faikout-NodeRed](https://codeberg.org/RaW07/faikout-NodeRed)
 
 #### faikout-openhab
-Automatischer **openHAB Integrations-Generator**: Ein GraalVM-JS-Script das sich per HTTP mit jedem Faikout verbindet, die Geräte-ID und aktive Features automatisch erkennt und alle MQTT-Things, Channels und Items anlegt – inklusive schreibgeschützter Config-Channels für Faikout-Einstellungen. Unterstützt mehrere Geräte. Wird einmalig beim openHAB-Start ausgeführt.
+Automatischer **openHAB Integrations-Generator**: Ein GraalVM-JS-Script das sich per HTTP mit jedem Faikout verbindet, die Geräte-ID und aktive Features automatisch erkennt und alle MQTT-Things, Channels und Items anlegt – inklusive nur-schreibender Config-Channels für Faikout-Einstellungen. Unterstützt mehrere Geräte. Wird einmalig beim openHAB-Start ausgeführt.
 
 → [codeberg.org/RaW07/faikout-openhab](https://codeberg.org/RaW07/faikout-openhab)
 
