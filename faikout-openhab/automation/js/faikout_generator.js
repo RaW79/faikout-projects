@@ -23,26 +23,58 @@ const { rules, triggers, actions } = require('openhab');
 // ================================================================
 // CONFIGURATION – adjust to your setup
 // ================================================================
-const CFG = {
-  faikoutHost:    'F0F5BD731830',   // Device ID – used in MQTT topics
-  faikoutIp:      '192.168.7.34',   // IP address – used for HTTP feature detection
-  mqttBrokerHost: '192.168.7.20',
-  mqttBrokerPort: 1884,
-  mqttUsername:   '',
-  mqttPassword:   '',
-  ohRestUrl:      'http://localhost:8080/rest',
-  ohApiToken:     'oh.claude.i3gIpRK2HwXmOEDpFWpFN53Xys5BkAgLkAaDlOY9tVGE2Zqg9EM0LtmGoC9FL6v1jlWOqh2d0Hvhp3qldw',
-  itemPrefix:     'Faikout',
-  brokerUID:           'mqtt:broker:faikout-broker',
-  deviceUID:           'mqtt:topic:faikout-broker:faikout',
-  createConfigChannels: true,   // set false to skip write-only config channels
+
+// --- Faikout devices ---
+// Add one entry per Faikout. The Device ID is fetched automatically from the device.
+// name: used as Item prefix, e.g. Klima_Wohnzimmer_Power, Klima_Wohnzimmer_Temp, ...
+const DEVICES = [
+  { name: 'Klima_Wohnzimmer',    ip: '192.168.x.x' },
+//{ name: 'Klima_Schlafzimmer',  ip: '192.168.x.x' },
+//{ name: 'Klima_Kueche',        ip: '192.168.x.x' },
+//{ name: 'Klima_Buero',         ip: '192.168.x.x' },
+//{ name: 'Klima_Keller',        ip: '192.168.x.x' },
+//{ name: 'Klima_Gaestezimmer',  ip: '192.168.x.x' },
+];
+
+// --- MQTT Broker ---
+const MQTT_BROKER = {
+  host: '192.168.x.x',
+  port: 1883,
+  user: '',
+  pass: '',
+};
+
+// --- openHAB ---
+const OPENHAB = {
+  apiToken:            'oh.admin.xxxxxxxxxxxxxxxxxxxx',
+  createConfigItems:   true,   // set false to skip write-only config channels
 };
 
 // ================================================================
-// MQTT TOPICS
+// INTERNAL – do not change below this line
 // ================================================================
-const STATUS_TOPIC  = 'state/'   + CFG.faikoutHost + '/status';
-const COMMAND_TOPIC = 'setting/' + CFG.faikoutHost;
+const CFG = {
+  mqttBrokerHost:      MQTT_BROKER.host,
+  mqttBrokerPort:      MQTT_BROKER.port,
+  mqttUsername:        MQTT_BROKER.user,
+  mqttPassword:        MQTT_BROKER.pass,
+  ohRestUrl:           'http://localhost:8080/rest',
+  ohApiToken:          OPENHAB.apiToken,
+  brokerUID:           'mqtt:broker:faikout-broker',
+  createConfigChannels: OPENHAB.createConfigItems,
+};
+
+// ================================================================
+// DEVICE CONTEXT – built at runtime per device
+// ================================================================
+// dev = {
+//   name:         'Klima_Wohnzimmer'
+//   ip:           '192.168.x.x'
+//   host:         'AABBCCDDEEFF'          ← fetched from device
+//   statusTopic:  'state/AABBCCDDEEFF/status'
+//   commandTopic: 'setting/AABBCCDDEEFF'
+//   deviceUID:    'mqtt:topic:faikout-broker:klima-wohnzimmer'
+// }
 
 // ================================================================
 // CHANNEL DEFINITIONS
@@ -137,6 +169,16 @@ function httpGet(url) {
     console.warn('[faikout-gen] HTTP GET ' + url + ' failed: ' + e);
     return null;
   }
+}
+
+// ================================================================
+// FETCH DEVICE ID – reads MAC/hostname from /revk-settings page
+// ================================================================
+function fetchDeviceId(ip) {
+  const html = httpGet('http://' + ip + '/revk-settings?_page=0');
+  if (!html) return null;
+  const match = html.match(/<h1>([^\s<]+)/);
+  return match ? match[1] : null;
 }
 
 // ================================================================
@@ -261,20 +303,19 @@ function channelTypeUID(type) {
        : 'mqtt:string';
 }
 
-function channelConfig(ch) {
+function channelConfig(dev, ch) {
   // Config channels are write-only – no stateTopic
   if (ch.cfg) {
-    const cfg = { commandTopic: COMMAND_TOPIC + '/' + ch.key };
+    const cfg = { commandTopic: dev.commandTopic + '/' + ch.key };
     if (ch.type === 'Switch') { cfg.on = '1'; cfg.off = '0'; }
     return cfg;
   }
   const cfg = {
-    stateTopic:            STATUS_TOPIC,
+    stateTopic:            dev.statusTopic,
     transformationPattern: 'JSONPATH:$.' + ch.key,
   };
   if (ch.rw) {
-    // RevK firmware: each setting has its own topic, raw value payload
-    cfg.commandTopic = COMMAND_TOPIC + '/' + ch.key;
+    cfg.commandTopic = dev.commandTopic + '/' + ch.key;
     if (ch.type === 'Switch') {
       cfg.on  = 'true';
       cfg.off = 'false';
@@ -283,32 +324,32 @@ function channelConfig(ch) {
   return cfg;
 }
 
-function ensureDeviceThing(activeChannels) {
+function ensureDeviceThing(dev, activeChannels) {
   const channelList = activeChannels.map(function(ch) {
     return {
-      uid:            CFG.deviceUID + ':' + ch.id,
+      uid:            dev.deviceUID + ':' + ch.id,
       id:             ch.id,
       channelTypeUID: channelTypeUID(ch.type),
       label:          ch.label,
-      configuration:  channelConfig(ch),
+      configuration:  channelConfig(dev, ch),
       properties:     {},
       defaultTags:    [],
     };
   });
 
   const body = {
-    UID:           CFG.deviceUID,
+    UID:           dev.deviceUID,
     thingTypeUID:  'mqtt:topic',
-    label:         'Faikout (' + CFG.faikoutHost + ')',
+    label:         dev.name + ' (' + dev.host + ')',
     bridgeUID:     CFG.brokerUID,
     configuration: {},
     channels:      channelList,
   };
 
-  const existing = ohGet('/things/' + encodeURIComponent(CFG.deviceUID));
+  const existing = ohGet('/things/' + encodeURIComponent(dev.deviceUID));
   if (existing && !existing.includes('"error"')) {
     console.log('[faikout-gen] Updating Device Thing (' + activeChannels.length + ' channels)...');
-    ohPut('/things/' + encodeURIComponent(CFG.deviceUID), body);
+    ohPut('/things/' + encodeURIComponent(dev.deviceUID), body);
   } else {
     console.log('[faikout-gen] Creating Device Thing (' + activeChannels.length + ' channels)...');
     ohPost('/things', body);
@@ -318,16 +359,16 @@ function ensureDeviceThing(activeChannels) {
 // ================================================================
 // ITEMS + CHANNEL LINKS
 // ================================================================
-function itemName(ch) {
-  return CFG.itemPrefix + '_' + ch.id.charAt(0).toUpperCase() + ch.id.slice(1);
+function itemName(dev, ch) {
+  return dev.name + '_' + ch.id.charAt(0).toUpperCase() + ch.id.slice(1);
 }
 
-function ensureItem(ch) {
-  const name = itemName(ch);
+function ensureItem(dev, ch) {
+  const name = itemName(dev, ch);
   const body = {
     name:     name,
     type:     ch.type,
-    label:    'Faikout ' + ch.label,
+    label:    dev.name + ' ' + ch.label,
     category: ch.type === 'Number' ? 'Temperature' : '',
     tags:     [],
   };
@@ -347,22 +388,31 @@ function ensureLink(name, channelUID) {
 // ================================================================
 // MAIN
 // ================================================================
-function generate() {
-  console.log('[faikout-gen] === Faikout Integration Generator starting ===');
+function generateForDevice(dev) {
+  console.log('[faikout-gen] --- Device: ' + dev.name + ' (' + dev.ip + ') ---');
 
-  // 1. Detect active features via Faikout HTTP pages
-  const found = fetchDeviceFields(CFG.faikoutIp);
+  // 1. Fetch Device ID from device
+  const host = fetchDeviceId(dev.ip);
+  if (!host) {
+    console.error('[faikout-gen] Cannot read Device ID from ' + dev.ip + ' – skipping.');
+    return;
+  }
+  dev.host         = host;
+  dev.statusTopic  = 'state/'   + host + '/status';
+  dev.commandTopic = 'setting/' + host;
+  dev.deviceUID    = 'mqtt:topic:faikout-broker:' + dev.name.toLowerCase().replace(/_/g, '-');
+  console.log('[faikout-gen] Device ID: ' + host);
+
+  // 2. Detect active features via HTML scraping
+  const found = fetchDeviceFields(dev.ip);
   var activeChannels;
   if (found) {
     activeChannels = CHANNELS.filter(function(ch) { return found.has(ch.key) || found.has(ch.id); });
     console.log('[faikout-gen] Active channels: ' + activeChannels.map(function(c) { return c.id; }).join(', '));
   } else {
     console.warn('[faikout-gen] Faikout unreachable – generating all channels as fallback.');
-    activeChannels = CHANNELS;
+    activeChannels = CHANNELS.slice();
   }
-
-  // 2. MQTT Broker Thing
-  ensureBrokerThing();
 
   // 3. Append config channels if enabled
   if (CFG.createConfigChannels) {
@@ -370,16 +420,30 @@ function generate() {
     console.log('[faikout-gen] Config channels enabled (+' + CONFIG_CHANNELS.length + ').');
   }
 
-  // 4. Faikout Device Thing with all channels
-  ensureDeviceThing(activeChannels);
+  // 4. Device Thing
+  ensureDeviceThing(dev, activeChannels);
 
   // 5. Items + channel links
   for (var i = 0; i < activeChannels.length; i++) {
-    const name = ensureItem(activeChannels[i]);
-    ensureLink(name, CFG.deviceUID + ':' + activeChannels[i].id);
+    const name = ensureItem(dev, activeChannels[i]);
+    ensureLink(name, dev.deviceUID + ':' + activeChannels[i].id);
   }
 
-  console.log('[faikout-gen] === Done. ' + activeChannels.length + ' channel(s) created/updated. ===');
+  console.log('[faikout-gen] Done: ' + dev.name + ' – ' + activeChannels.length + ' channel(s) created/updated.');
+}
+
+function generate() {
+  console.log('[faikout-gen] === Faikout Integration Generator starting (' + DEVICES.length + ' device(s)) ===');
+
+  // Broker Thing is shared – create once
+  ensureBrokerThing();
+
+  // Process each device
+  for (var i = 0; i < DEVICES.length; i++) {
+    generateForDevice(Object.assign({}, DEVICES[i]));
+  }
+
+  console.log('[faikout-gen] === All done. ===');
 }
 
 // ================================================================
