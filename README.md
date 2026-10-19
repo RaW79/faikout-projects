@@ -57,6 +57,11 @@ Ready-to-import **Node-RED flow** for universal MQTT integration. Covers all sta
 
 → [codeberg.org/RaW07/faikout-NodeRed](https://codeberg.org/RaW07/faikout-NodeRed)
 
+#### faikout-openhab
+Automatic **openHAB integration generator**: a GraalVM JS script that connects to each Faikout via HTTP, auto-detects the device ID and active features, and creates all MQTT Things, channels, and Items – including write-only config channels for Faikout settings. Supports multiple devices. Runs once at openHAB startup.
+
+→ [codeberg.org/RaW07/faikout-openhab](https://codeberg.org/RaW07/faikout-openhab)
+
 #### faikout-openccu
 **Homematic integration** via openCCU. Provides a CCU flow for humidity and dew point control using the Faikout as actuator.
 
@@ -129,6 +134,11 @@ Automatischer **ioBroker Alias-Generator**: Ein JavaScript-Adapter-Script das si
 Importfertiger **Node-RED Flow** für universelle MQTT-Anbindung. Enthält alle Statusfelder und Steuerbefehle, strukturiert in sechs Gruppen: Konfiguration, Statusempfang, Befehle, Einstellungen, Externer Temperatursensor und Diagnose.
 
 → [codeberg.org/RaW07/faikout-NodeRed](https://codeberg.org/RaW07/faikout-NodeRed)
+
+#### faikout-openhab
+Automatischer **openHAB Integrations-Generator**: Ein GraalVM-JS-Script das sich per HTTP mit jedem Faikout verbindet, die Geräte-ID und aktive Features automatisch erkennt und alle MQTT-Things, Channels und Items anlegt – inklusive schreibgeschützter Config-Channels für Faikout-Einstellungen. Unterstützt mehrere Geräte. Wird einmalig beim openHAB-Start ausgeführt.
+
+→ [codeberg.org/RaW07/faikout-openhab](https://codeberg.org/RaW07/faikout-openhab)
 
 #### faikout-openccu
 **Homematic-Integration** via openCCU. Enthält einen CCU-Flow zur Feuchtigkeits- und Taupunktregelung mit dem Faikout als Aktor.
