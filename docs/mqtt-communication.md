@@ -135,6 +135,12 @@ Payload is a JSON object with exactly one key:
 
 > **Note on `env`:** The Faikout uses this value as its temperature reference for control as long as updates keep arriving. If no update is received for longer than the configured `tcontrol` timeout (seconds), the Faikout falls back to its internal sensor and clears the `control` flag in the status.
 
+Example – turn on the AC:
+```
+Topic:   command/faikout-abc123/control
+Payload: {"power":true}
+```
+
 #### `command/<Hostname>/<key>`
 
 One topic per key. Boolean fields use `1` for on, `0` for off.
@@ -161,6 +167,12 @@ Optional (only available if the feature is active on the device):
 | `quiet` | `1` / `0` | Quiet mode (outdoor unit) |
 | `humidify` | `X` · `L` · `S` · `H` · `C` | Humidifier mode |
 
+Example – set operating mode to Heat:
+```
+Topic:   command/faikout-abc123/mode
+Payload: H
+```
+
 #### `setting/<Hostname>/<key>`
 
 Direct value. Settings persist across device restarts.
@@ -173,6 +185,12 @@ Direct value. Settings persist across device restarts.
 | `coolback` | °C | Cool pull-back offset |
 | `tcontrol` | s | Timeout for external control mode – refreshed with each incoming update (auto.topic, MQTT control message, BLE remote). When no update arrives within this interval, the Faikout exits external control and clears the `control` flag in the status. Does not apply to the Faikout's own internal auto regulation. |
 
+Example – set target temperature to 21.5 °C:
+```
+Topic:   setting/faikout-abc123/autot
+Payload: 21.5
+```
+
 #### `setting/<Hostname>` – Timer times
 
 Timer on/off times are written as a JSON object to the **base setting topic** (no key suffix). The time value must be provided **without colon**:
@@ -181,6 +199,12 @@ Timer on/off times are written as a JSON object to the **base setting topic** (n
 |-----|-----------------|-------------|
 | `auto0` | `{"auto0":"2300"}` | Timer off time (`23:00` → `2300`) |
 | `auto1` | `{"auto1":"0630"}` | Timer on time (`06:30` → `0630`) |
+
+Example – set timer off time to 23:00:
+```
+Topic:   setting/faikout-abc123
+Payload: {"auto0":"2300"}
+```
 
 ---
 
@@ -311,6 +335,12 @@ Payload ist ein JSON-Objekt mit genau einem Schlüssel:
 
 > **Hinweis zu `env`:** Der Faikout verwendet diesen Wert als Temperaturreferenz für die Regelung, solange regelmäßig Updates eintreffen. Bleibt ein Update länger aus als der konfigurierte `tcontrol`-Timeout (Sekunden), fällt der Faikout auf seinen internen Sensor zurück und löscht das `control`-Flag im Status.
 
+Beispiel – Klimagerät einschalten:
+```
+Topic:   command/faikout-abc123/control
+Payload: {"power":true}
+```
+
 #### `command/<Hostname>/<key>`
 
 Ein Topic pro Schlüssel. Boolesche Felder: `1` = ein, `0` = aus.
@@ -337,6 +367,12 @@ Optional (nur verfügbar, wenn das Feature am Gerät aktiv ist):
 | `quiet` | `1` / `0` | Quiet-Modus (Außengerät leise) |
 | `humidify` | `X` · `L` · `S` · `H` · `C` | Befeuchter-Modus |
 
+Beispiel – Betriebsmodus auf Heizen setzen:
+```
+Topic:   command/faikout-abc123/mode
+Payload: H
+```
+
 #### `setting/<Hostname>/<key>`
 
 Direktwert. Einstellungen bleiben über Neustarts hinweg erhalten.
@@ -349,6 +385,12 @@ Direktwert. Einstellungen bleiben über Neustarts hinweg erhalten.
 | `coolback` | °C | Cool-pull-back-Offset |
 | `tcontrol` | s | Timeout für den externen Regelmodus – wird bei jedem eingehenden Update zurückgesetzt (auto.topic, MQTT-Steuerbefehl, BLE-Remote). Trifft innerhalb dieser Zeit kein Update ein, beendet der Faikout den externen Regelmodus und löscht das `control`-Flag im Status. Gilt nicht für die interne Faikout-Eigenregelung. |
 
+Beispiel – Solltemperatur auf 21,5 °C setzen:
+```
+Topic:   setting/faikout-abc123/autot
+Payload: 21.5
+```
+
 #### `setting/<Hostname>` – Timer-Zeiten
 
 Timer-Ein- und Ausschaltzeiten werden als JSON-Objekt an das **Basis-Setting-Topic** gesendet (kein Key-Suffix). Die Zeitangabe muss **ohne Doppelpunkt** übergeben werden:
@@ -357,6 +399,12 @@ Timer-Ein- und Ausschaltzeiten werden als JSON-Objekt an das **Basis-Setting-Top
 |-----|-----------------|--------------|
 | `auto0` | `{"auto0":"2300"}` | Timer-Ausschaltzeit (`23:00` → `2300`) |
 | `auto1` | `{"auto1":"0630"}` | Timer-Einschaltzeit (`06:30` → `0630`) |
+
+Beispiel – Ausschaltzeit auf 23:00 setzen:
+```
+Topic:   setting/faikout-abc123
+Payload: {"auto0":"2300"}
+```
 
 ---
 
