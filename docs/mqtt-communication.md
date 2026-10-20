@@ -107,7 +107,7 @@ Example payload:
 
 > Not all fields are present on every device. Optional features (streamer, humidifier, BLE sensor etc.) only appear if enabled on the device.
 
-> **Note on `temp` (read):** This is the Daikin's internal setpoint – a value the Daikin controls itself and reports back. It is not the same as `autot` (the Faikout target). A `target` field also exists but only in the Home Assistant-specific MQTT status format, not in the standard status topic documented here.
+> **Note on `temp` (read):** This is the Daikin's internal setpoint – a value that the Faikout writes to the Daikin (when controlling) and the Daikin reports back. It is not the same as `autot` (the Faikout target temperature). A `target` field also exists but only in the Home Assistant-specific MQTT status format, not in the standard status topic documented here.
 
 ---
 
@@ -307,7 +307,7 @@ Beispiel-Payload:
 
 > Nicht alle Felder sind auf jedem Gerät vorhanden. Optionale Features (Streamer, Befeuchter, BLE-Sensor usw.) erscheinen nur, wenn sie am Gerät aktiviert sind.
 
-> **Hinweis zu `temp` (lesen):** Dies ist der interne Daikin-Sollwert – ein Wert, den der Daikin selbst regelt und zurückmeldet. Er entspricht nicht `autot` (dem Faikout-Sollwert). Ein `target`-Feld existiert ebenfalls, jedoch ausschließlich im Home-Assistant-spezifischen MQTT-Statusformat, nicht im hier dokumentierten Standard-Status-Topic.
+> **Hinweis zu `temp` (lesen):** Dies ist der interne Daikin-Sollwert – ein Wert, den ggf. das Faikout regelt und den die Daikin zurückmeldet. Er entspricht nicht `autot` (dem Faikout-Sollwert). Ein `target`-Feld existiert ebenfalls, jedoch ausschließlich im Home-Assistant-spezifischen MQTT-Statusformat, nicht im hier dokumentierten Standard-Status-Topic.
 
 ---
 
