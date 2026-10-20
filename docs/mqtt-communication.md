@@ -10,7 +10,7 @@
 
 ## English
 
-> **Important:** The Faikout uses completely different MQTT topics for reading and writing. Status is received on a single JSON topic. Commands are sent to separate topics per function — and the topic structure differs depending on the type of command. This is the most common source of confusion when integrating the Faikout.
+> **Important:** The Faikout uses completely different MQTT topics for reading and writing. Status is received on a single JSON topic. Commands are sent to separate topics per function, and the topic structure differs depending on the type of command. This is the most common source of confusion when integrating the Faikout.
 
 > The topic structure shown here is the default. Topic prefixes can be customized in the Faikout web interface under **Settings → Library**, but this guide refers to the defaults.
 
@@ -20,7 +20,7 @@
 |-------|-----------|---------|
 | `state/<Hostname>/status` | ← receive | JSON object containing all current AC values |
 
-The Faikout publishes the complete status as a single JSON message. Every piece of information — temperatures, operating mode, switch states, energy data — arrives in this one message and must be extracted from it.
+The Faikout publishes the complete status as a single JSON message. Every piece of information (temperatures, operating mode, switch states, energy data) arrives in this one message and must be extracted from it.
 
 Example payload:
 ```json
@@ -186,7 +186,7 @@ Timer on/off times are written as a JSON object to the **base setting topic** (n
 
 ## Deutsch
 
-> **Wichtig:** Der Faikout verwendet für Lesen und Schreiben vollständig unterschiedliche MQTT-Topics. Der Status wird über ein einziges JSON-Topic empfangen. Befehle werden über separate Topics je Funktion gesendet — und die Topic-Struktur unterscheidet sich je nach Befehlstyp. Das ist die häufigste Fehlerquelle bei der Faikout-Integration.
+> **Wichtig:** Der Faikout verwendet für Lesen und Schreiben vollständig unterschiedliche MQTT-Topics. Der Status wird über ein einziges JSON-Topic empfangen. Befehle werden über separate Topics je Funktion gesendet, und die Topic-Struktur unterscheidet sich je nach Befehlstyp. Das ist die häufigste Fehlerquelle bei der Faikout-Integration.
 
 > Die hier beschriebene Topic-Struktur gilt für die Standardeinstellung. Die Topic-Präfixe können im Faikout-Webinterface unter **Einstellungen → Library** angepasst werden, dieses Dokument bezieht sich auf die Standardwerte.
 
@@ -196,7 +196,7 @@ Timer on/off times are written as a JSON object to the **base setting topic** (n
 |-------|----------|---------|
 | `state/<Hostname>/status` | ← empfangen | JSON-Objekt mit allen aktuellen AC-Werten |
 
-Der Faikout veröffentlicht den kompletten Status als einzelne JSON-Nachricht. Alle Informationen — Temperaturen, Betriebsmodus, Schaltzustände, Energiedaten — kommen in dieser einen Nachricht an und müssen daraus extrahiert werden.
+Der Faikout veröffentlicht den kompletten Status als einzelne JSON-Nachricht. Alle Informationen (Temperaturen, Betriebsmodus, Schaltzustände, Energiedaten) kommen in dieser einen Nachricht an und müssen daraus extrahiert werden.
 
 Beispiel-Payload:
 ```json
