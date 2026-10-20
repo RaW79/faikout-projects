@@ -21,6 +21,7 @@ More information about the Faikout itself: [codeberg.org/RevK/ESP32-Faikout](htt
 - [WiFi setup](docs/getting-started.md#wifi-setup)
 - [Home Assistant integration](docs/getting-started.md#home-assistant-integration)
 - [External temperature sensor](docs/getting-started.md#external-temperature-sensor)
+- [MQTT Communication](docs/mqtt-communication.md)
 - <a href="https://RaW07.codeberg.page/faikout-projects/" target="_blank">Cable & Plug Reference</a>
 
 </td><td valign="top">
@@ -99,6 +100,7 @@ Weitere Informationen zum Faikout selbst: [codeberg.org/RevK/ESP32-Faikout](http
 - [WLAN-Einrichtung](docs/getting-started.md#wlan-einrichtung)
 - [Home Assistant Integration](docs/getting-started.md#home-assistant-integration-1)
 - [Externer Temperatursensor](docs/getting-started.md#externer-temperatursensor)
+- [MQTT-Kommunikation](docs/mqtt-communication.md)
 - <a href="https://RaW07.codeberg.page/faikout-projects/" target="_blank">Kabel- & Stecker-Referenz</a>
 
 </td><td valign="top">
