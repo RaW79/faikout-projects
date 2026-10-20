@@ -12,7 +12,7 @@
 
 > **Important:** The Faikout uses completely different MQTT topics for reading and writing. Status is received on a single JSON topic. Commands are sent to separate topics per function — and the topic structure differs depending on the type of command. This is the most common source of confusion when integrating the Faikout.
 
-> The topic structure shown here is the default. Topic prefixes can be customized in the Faikout web interface under Settings, but this guide refers to the defaults.
+> The topic structure shown here is the default. Topic prefixes can be customized in the Faikout web interface under **Settings → Library**, but this guide refers to the defaults.
 
 ### Reading: Status Topic
 
@@ -188,7 +188,7 @@ Timer on/off times are written as a JSON object to the **base setting topic** (n
 
 > **Wichtig:** Der Faikout verwendet für Lesen und Schreiben vollständig unterschiedliche MQTT-Topics. Der Status wird über ein einziges JSON-Topic empfangen. Befehle werden über separate Topics je Funktion gesendet — und die Topic-Struktur unterscheidet sich je nach Befehlstyp. Das ist die häufigste Fehlerquelle bei der Faikout-Integration.
 
-> Die hier beschriebene Topic-Struktur gilt für die Standardeinstellung. Die Topic-Präfixe können im Faikout-Webinterface unter Einstellungen angepasst werden, dieses Dokument bezieht sich auf die Standardwerte.
+> Die hier beschriebene Topic-Struktur gilt für die Standardeinstellung. Die Topic-Präfixe können im Faikout-Webinterface unter **Einstellungen → Library** angepasst werden, dieses Dokument bezieht sich auf die Standardwerte.
 
 ### Lesen: Status-Topic
 
