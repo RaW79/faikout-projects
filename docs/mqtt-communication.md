@@ -107,6 +107,8 @@ Example payload:
 
 > Not all fields are present on every device. Optional features (streamer, humidifier, BLE sensor etc.) only appear if enabled on the device.
 
+> **Note on `temp` (read):** This is the Daikin's internal setpoint – a value the Daikin controls itself and reports back. It is not the same as `autot` (the Faikout target). A `target` field also exists but only in the Home Assistant-specific MQTT status format, not in the standard status topic documented here.
+
 ---
 
 ### Writing: Command Topics
@@ -148,6 +150,7 @@ One topic per key. Boolean fields use `1` for on, `0` for off.
 | `autoe` | `1` / `0` | Faikout auto mode on/off |
 | `autop` | `1` / `0` | Auto power on/off |
 | `restart` | `1` | Restart Faikout device |
+| `temp` | number (°C) | Daikin setpoint – only effective when Faikout auto mode is off. If auto mode is active, the firmware silently redirects the value to `autot` instead. |
 
 Optional (only available if the feature is active on the device):
 
@@ -168,7 +171,7 @@ Direct value. Settings persist across device restarts.
 | `autor` | °C | Hysteresis |
 | `heatback` | °C | Heat pull-back offset |
 | `coolback` | °C | Cool pull-back offset |
-| `tcontrol` | s | External temperature control timeout |
+| `tcontrol` | s | Timeout for external control mode – refreshed with each incoming update (auto.topic, MQTT control message, BLE remote). When no update arrives within this interval, the Faikout exits external control and clears the `control` flag in the status. Does not apply to the Faikout's own internal auto regulation. |
 
 #### `setting/<Hostname>` – Timer times
 
@@ -280,6 +283,8 @@ Beispiel-Payload:
 
 > Nicht alle Felder sind auf jedem Gerät vorhanden. Optionale Features (Streamer, Befeuchter, BLE-Sensor usw.) erscheinen nur, wenn sie am Gerät aktiviert sind.
 
+> **Hinweis zu `temp` (lesen):** Dies ist der interne Daikin-Sollwert – ein Wert, den der Daikin selbst regelt und zurückmeldet. Er entspricht nicht `autot` (dem Faikout-Sollwert). Ein `target`-Feld existiert ebenfalls, jedoch ausschließlich im Home-Assistant-spezifischen MQTT-Statusformat, nicht im hier dokumentierten Standard-Status-Topic.
+
 ---
 
 ### Schreiben: Befehls-Topics
@@ -321,6 +326,7 @@ Ein Topic pro Schlüssel. Boolesche Felder: `1` = ein, `0` = aus.
 | `autoe` | `1` / `0` | Faikout Auto-Modus ein/aus |
 | `autop` | `1` / `0` | Automatisches Ein-/Ausschalten ein/aus |
 | `restart` | `1` | Faikout-Gerät neu starten |
+| `temp` | Zahl (°C) | Daikin-Sollwert – nur wirksam, wenn der Faikout Auto-Modus deaktiviert ist. Ist der Auto-Modus aktiv, leitet die Firmware den Wert stillschweigend als `autot` um. |
 
 Optional (nur verfügbar, wenn das Feature am Gerät aktiv ist):
 
@@ -341,7 +347,7 @@ Direktwert. Einstellungen bleiben über Neustarts hinweg erhalten.
 | `autor` | °C | Hysterese |
 | `heatback` | °C | Heat-pull-back-Offset |
 | `coolback` | °C | Cool-pull-back-Offset |
-| `tcontrol` | s | Timeout für externe Temperaturregelung |
+| `tcontrol` | s | Timeout für den externen Regelmodus – wird bei jedem eingehenden Update zurückgesetzt (auto.topic, MQTT-Steuerbefehl, BLE-Remote). Trifft innerhalb dieser Zeit kein Update ein, beendet der Faikout den externen Regelmodus und löscht das `control`-Flag im Status. Gilt nicht für die interne Faikout-Eigenregelung. |
 
 #### `setting/<Hostname>` – Timer-Zeiten
 
