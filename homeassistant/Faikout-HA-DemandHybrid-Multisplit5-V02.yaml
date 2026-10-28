@@ -409,19 +409,7 @@ action:
           {{ val }}
         {% endif %}
 
-  # --- Demand synchron an alle 5 Module senden ---
-  - service: select.select_option
-    target:
-      entity_id:
-        - !input demand_entity_1
-        - !input demand_entity_2
-        - !input demand_entity_3
-        - !input demand_entity_4
-        - !input demand_entity_5
-    data:
-      option: "{{ option }}"
-
-  # --- Heatback per Zone: Guard wenn Zone überhitzt, Normal sonst ---
+  # --- Heatback per Zone: Guard wenn Zone überhitzt, Normal sonst (läuft immer) ---
   - service: mqtt.publish
     data:
       topic: "setting/{{ hn1 }}/heatback"
@@ -471,3 +459,19 @@ action:
         {% else %}
           {{ heatback_normal }}
         {% endif %}
+
+  # --- Demand nur senden wenn sich der Wert geändert hat ---
+  - condition: template
+    value_template: "{{ states(demand_entity_ref) | regex_findall_index('[0-9]+') | float(0) != option }}"
+
+  # --- Demand synchron an alle 5 Module senden ---
+  - service: select.select_option
+    target:
+      entity_id:
+        - !input demand_entity_1
+        - !input demand_entity_2
+        - !input demand_entity_3
+        - !input demand_entity_4
+        - !input demand_entity_5
+    data:
+      option: "{{ option }}"
