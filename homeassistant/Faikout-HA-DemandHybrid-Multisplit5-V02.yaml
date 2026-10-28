@@ -1,0 +1,473 @@
+blueprint:
+  name: Klima Demand Hybrid Control - Multisplit 5x mit Heatback (V02)
+  description: >
+    **Wichtiger Hinweis vorab:**
+    Bevor du dieses Blueprint einsetzt, müssen die Grundeinstellungen im Faikout
+    (Thermostatmodus, heatover, heatback, lockmode) wie in der Dokumentation beschrieben
+    vorgenommen werden:
+    https://codeberg.org/RaW07/faikout-projects/src/branch/main/docs/advanced-control.md
+
+    Bedarfssteuerung für Multisplit-Klimaanlagen mit 5 festen Zonen (Faikout-Module).
+    Berechnet den Worst-Case aus allen aktiven Zonen und steuert die Demand-Module synchron an.
+    Überheizschutz per Zone: heatback wird individuell per MQTT angepasst, sodass eine
+    überhitzte Zone gedrosselt wird ohne andere Zonen zu beeinflussen.
+
+    Multisplit-Hinweis: Alle Zonen teilen einen Kompressor. Der Demand muss daher
+    für alle Module gleich sein und wird synchron gesendet.
+  domain: automation
+
+  input:
+    # --- Zone 1 (Pflicht) ---
+    hvac_1:
+      name: Innengerät 1 (Pflicht)
+      selector:
+        entity:
+          domain: climate
+    room_sensor_1:
+      name: Raumtemperatur 1 (Pflicht)
+      selector:
+        entity:
+          domain: sensor
+          device_class: temperature
+    demand_entity_1:
+      name: Demand Select Modul 1 (Pflicht)
+      selector:
+        entity:
+          domain: select
+    hostname_1:
+      name: Faikout Hostname Modul 1 (z.B. faikout-abc123)
+      selector:
+        text:
+
+    # --- Zone 2 (Pflicht) ---
+    hvac_2:
+      name: Innengerät 2 (Pflicht)
+      selector:
+        entity:
+          domain: climate
+    room_sensor_2:
+      name: Raumtemperatur 2 (Pflicht)
+      selector:
+        entity:
+          domain: sensor
+          device_class: temperature
+    demand_entity_2:
+      name: Demand Select Modul 2 (Pflicht)
+      selector:
+        entity:
+          domain: select
+    hostname_2:
+      name: Faikout Hostname Modul 2
+      selector:
+        text:
+
+    # --- Zone 3 (Pflicht) ---
+    hvac_3:
+      name: Innengerät 3 (Pflicht)
+      selector:
+        entity:
+          domain: climate
+    room_sensor_3:
+      name: Raumtemperatur 3 (Pflicht)
+      selector:
+        entity:
+          domain: sensor
+          device_class: temperature
+    demand_entity_3:
+      name: Demand Select Modul 3 (Pflicht)
+      selector:
+        entity:
+          domain: select
+    hostname_3:
+      name: Faikout Hostname Modul 3
+      selector:
+        text:
+
+    # --- Zone 4 (Pflicht) ---
+    hvac_4:
+      name: Innengerät 4 (Pflicht)
+      selector:
+        entity:
+          domain: climate
+    room_sensor_4:
+      name: Raumtemperatur 4 (Pflicht)
+      selector:
+        entity:
+          domain: sensor
+          device_class: temperature
+    demand_entity_4:
+      name: Demand Select Modul 4 (Pflicht)
+      selector:
+        entity:
+          domain: select
+    hostname_4:
+      name: Faikout Hostname Modul 4
+      selector:
+        text:
+
+    # --- Zone 5 (Pflicht) ---
+    hvac_5:
+      name: Innengerät 5 (Pflicht)
+      selector:
+        entity:
+          domain: climate
+    room_sensor_5:
+      name: Raumtemperatur 5 (Pflicht)
+      selector:
+        entity:
+          domain: sensor
+          device_class: temperature
+    demand_entity_5:
+      name: Demand Select Modul 5 (Pflicht)
+      selector:
+        entity:
+          domain: select
+    hostname_5:
+      name: Faikout Hostname Modul 5
+      selector:
+        text:
+
+    # --- Gemeinsame Sensoren & Parameter ---
+    outdoor_sensor:
+      name: Außentemperatur (zentral für das Außengerät)
+      selector:
+        entity:
+          domain: sensor
+          device_class: temperature
+
+    outdoor_curve:
+      name: Heizkurve (Außentemperatur -> Basis-Demand)
+      default: '[[-10,70],[-5,60],[0,55],[5,50],[10,40],[15,30]]'
+      selector:
+        text:
+
+    correction_curve:
+      name: Raumkorrektur (Temperaturdifferenz -> Korrektur-Demand)
+      default: '[[-0.5,-10],[-0.2,-5],[0,0],[0.5,5],[1.0,10]]'
+      selector:
+        text:
+
+    ramp_step:
+      name: Maximale Demand-Änderung pro Zyklus
+      default: 5
+      selector:
+        number:
+          min: 1
+          max: 20
+          step: 1
+          unit_of_measurement: "%"
+
+    demand_min:
+      name: Minimal Demand (30 bis 95)
+      default: 30
+      selector:
+        number:
+          min: 30
+          max: 95
+          step: 5
+
+    demand_max:
+      name: Maximal Demand (35 bis 100)
+      default: 100
+      selector:
+        number:
+          min: 35
+          max: 100
+          step: 5
+
+    overheat_threshold:
+      name: Überheizschutz-Schwelle (Soll minus Ist)
+      description: >
+        Wenn Raumtemperatur minus Sollwert diesen Wert unterschreitet, wird heatback_guard
+        aktiviert. Standard -0.4 entspricht: Raum ist 0.4°C über Sollwert.
+      default: -0.4
+      selector:
+        number:
+          min: -2
+          max: 0
+          step: 0.1
+          unit_of_measurement: "°C"
+
+    heatback_normal:
+      name: Heatback Normal
+      description: >
+        Normaler heatback-Wert (°C). Schreibt setting/<Hostname>/heatback.
+        Empfohlen: 3
+      default: 3
+      selector:
+        number:
+          min: 0
+          max: 10
+          step: 0.5
+          unit_of_measurement: "°C"
+
+    heatback_guard:
+      name: Heatback Überheizschutz
+      description: >
+        heatback-Wert bei Überhitzung (°C). Zwingt Daikin zum echten Stopp statt 3-Min-Takt.
+        Empfohlen: 6
+      default: 6
+      selector:
+        number:
+          min: 0
+          max: 15
+          step: 0.5
+          unit_of_measurement: "°C"
+
+mode: restart
+
+trigger:
+  - platform: state
+    entity_id:
+      - !input room_sensor_1
+      - !input room_sensor_2
+      - !input room_sensor_3
+      - !input room_sensor_4
+      - !input room_sensor_5
+      - !input outdoor_sensor
+      - !input hvac_1
+      - !input hvac_2
+      - !input hvac_3
+      - !input hvac_4
+      - !input hvac_5
+  - platform: time_pattern
+    minutes: "/2"
+
+action:
+  - variables:
+      hvac1: !input hvac_1
+      sensor1: !input room_sensor_1
+      hvac2: !input hvac_2
+      sensor2: !input room_sensor_2
+      hvac3: !input hvac_3
+      sensor3: !input room_sensor_3
+      hvac4: !input hvac_4
+      sensor4: !input room_sensor_4
+      hvac5: !input hvac_5
+      sensor5: !input room_sensor_5
+
+      hn1: !input hostname_1
+      hn2: !input hostname_2
+      hn3: !input hostname_3
+      hn4: !input hostname_4
+      hn5: !input hostname_5
+
+      outdoor_sensor_entity: !input outdoor_sensor
+      outdoor_curve_raw: !input outdoor_curve
+      correction_curve_raw: !input correction_curve
+      ramp_step: !input ramp_step
+      raw_min: !input demand_min
+      raw_max: !input demand_max
+      demand_min: "{{ [raw_min, raw_max] | min }}"
+      demand_max: "{{ [raw_min, raw_max] | max }}"
+      overheat_threshold: !input overheat_threshold
+      heatback_normal: !input heatback_normal
+      heatback_guard: !input heatback_guard
+
+      demand_entity_ref: !input demand_entity_1
+      current_raw: "{{ states(demand_entity_ref) }}"
+
+  # --- Worst-Case Soll-Ist-Abweichung + per-Zone Diffs (nur aktive Heizzonen) ---
+  - variables:
+      diff_1: >
+        {% if is_state(hvac1, 'heat') and states(sensor1) not in ['unknown', 'unavailable'] %}
+          {{ state_attr(hvac1, 'temperature') | float(0) - states(sensor1) | float(0) }}
+        {% else %}
+          none
+        {% endif %}
+      diff_2: >
+        {% if is_state(hvac2, 'heat') and states(sensor2) not in ['unknown', 'unavailable'] %}
+          {{ state_attr(hvac2, 'temperature') | float(0) - states(sensor2) | float(0) }}
+        {% else %}
+          none
+        {% endif %}
+      diff_3: >
+        {% if is_state(hvac3, 'heat') and states(sensor3) not in ['unknown', 'unavailable'] %}
+          {{ state_attr(hvac3, 'temperature') | float(0) - states(sensor3) | float(0) }}
+        {% else %}
+          none
+        {% endif %}
+      diff_4: >
+        {% if is_state(hvac4, 'heat') and states(sensor4) not in ['unknown', 'unavailable'] %}
+          {{ state_attr(hvac4, 'temperature') | float(0) - states(sensor4) | float(0) }}
+        {% else %}
+          none
+        {% endif %}
+      diff_5: >
+        {% if is_state(hvac5, 'heat') and states(sensor5) not in ['unknown', 'unavailable'] %}
+          {{ state_attr(hvac5, 'temperature') | float(0) - states(sensor5) | float(0) }}
+        {% else %}
+          none
+        {% endif %}
+
+  - variables:
+      active_diffs: >
+        {% set ns = namespace(diffs=[]) %}
+        {% for d in [diff_1, diff_2, diff_3, diff_4, diff_5] %}
+          {% if d != 'none' and d is not none %}
+            {% set ns.diffs = ns.diffs + [d | float] %}
+          {% endif %}
+        {% endfor %}
+        {{ ns.diffs }}
+
+      max_diff: >
+        {% if active_diffs | length > 0 %}
+          {{ active_diffs | max }}
+        {% else %}
+          -99.0
+        {% endif %}
+
+      outdoor_curve: "{{ outdoor_curve_raw | from_json }}"
+      correction_curve: "{{ correction_curve_raw | from_json }}"
+      outdoor: "{{ states(outdoor_sensor_entity) | float(0) }}"
+      current: >
+        {% set m = current_raw | regex_findall_index('[0-9]+') %}
+        {% if m is not none %}
+          {{ m | float(0) }}
+        {% else %}
+          {{ demand_min }}
+        {% endif %}
+
+  # --- Basis-Heizkurve nach Außentemperatur ---
+  - variables:
+      base_demand: >
+        {% set pts = outdoor_curve %}
+        {% set t = outdoor %}
+        {% if t <= pts[0][0] %}
+          {{ pts[0][1] }}
+        {% elif t >= pts[-1][0] %}
+          {{ pts[-1][1] }}
+        {% else %}
+          {% set ns = namespace(val=pts[0][1]) %}
+          {% for i in range(pts|length - 1) %}
+            {% set a = pts[i] %}
+            {% set b = pts[i+1] %}
+            {% if t >= a[0] and t <= b[0] %}
+              {% set ratio = (t - a[0]) / (b[0] - a[0]) %}
+              {% set ns.val = a[1] + ratio * (b[1] - a[1]) %}
+            {% endif %}
+          {% endfor %}
+          {{ ns.val }}
+        {% endif %}
+
+  # --- Raumkorrektur basierend auf dem kältesten aktiven Raum (Worst-Case) ---
+  - variables:
+      correction: >
+        {% set pts = correction_curve %}
+        {% set d = max_diff %}
+        {% if d <= pts[0][0] %}
+          {{ pts[0][1] }}
+        {% elif d >= pts[-1][0] %}
+          {{ pts[-1][1] }}
+        {% else %}
+          {% set ns = namespace(val=0) %}
+          {% for i in range(pts|length - 1) %}
+            {% set a = pts[i] %}
+            {% set b = pts[i+1] %}
+            {% if d >= a[0] and d <= b[0] %}
+              {% set ratio = (d - a[0]) / (b[0] - a[0]) %}
+              {% set ns.val = a[1] + ratio * (b[1] - a[1]) %}
+            {% endif %}
+          {% endfor %}
+          {{ ns.val }}
+        {% endif %}
+
+  # --- Ziel-Demand: demand_min wenn keine aktive Zone oder alle überhitzen ---
+  - variables:
+      target_demand: >
+        {% if active_diffs | length == 0 or max_diff < overheat_threshold %}
+          {{ demand_min }}
+        {% else %}
+          {{ base_demand + correction }}
+        {% endif %}
+
+  # --- Sanfte Nachführung (Ramping) ---
+  - variables:
+      ramped: >
+        {% set step = ramp_step | float %}
+        {% set cur = current | float %}
+        {% set tgt = target_demand | float %}
+        {% if tgt > cur %}
+          {{ [tgt, cur + step] | min }}
+        {% elif tgt < cur %}
+          {{ [tgt, cur - step] | max }}
+        {% else %}
+          {{ cur }}
+        {% endif %}
+
+  # --- Begrenzung und 5%-Rundung ---
+  - variables:
+      limited: "{{ [demand_max, [ramped, demand_min] | max] | min }}"
+      rounded: "{{ (limited / 5) | round(0, 'ceil') * 5 }}"
+      option: >
+        {% set val = rounded | int %}
+        {% if val < demand_min %}
+          {{ demand_min }}
+        {% elif val > demand_max %}
+          {{ demand_max }}
+        {% else %}
+          {{ val }}
+        {% endif %}
+
+  # --- Demand synchron an alle 5 Module senden ---
+  - service: select.select_option
+    target:
+      entity_id:
+        - !input demand_entity_1
+        - !input demand_entity_2
+        - !input demand_entity_3
+        - !input demand_entity_4
+        - !input demand_entity_5
+    data:
+      option: "{{ option }}"
+
+  # --- Heatback per Zone: Guard wenn Zone überhitzt, Normal sonst ---
+  - service: mqtt.publish
+    data:
+      topic: "setting/{{ hn1 }}/heatback"
+      payload: >
+        {% if diff_1 != 'none' and diff_1 is not none and diff_1 | float < overheat_threshold %}
+          {{ heatback_guard }}
+        {% else %}
+          {{ heatback_normal }}
+        {% endif %}
+
+  - service: mqtt.publish
+    data:
+      topic: "setting/{{ hn2 }}/heatback"
+      payload: >
+        {% if diff_2 != 'none' and diff_2 is not none and diff_2 | float < overheat_threshold %}
+          {{ heatback_guard }}
+        {% else %}
+          {{ heatback_normal }}
+        {% endif %}
+
+  - service: mqtt.publish
+    data:
+      topic: "setting/{{ hn3 }}/heatback"
+      payload: >
+        {% if diff_3 != 'none' and diff_3 is not none and diff_3 | float < overheat_threshold %}
+          {{ heatback_guard }}
+        {% else %}
+          {{ heatback_normal }}
+        {% endif %}
+
+  - service: mqtt.publish
+    data:
+      topic: "setting/{{ hn4 }}/heatback"
+      payload: >
+        {% if diff_4 != 'none' and diff_4 is not none and diff_4 | float < overheat_threshold %}
+          {{ heatback_guard }}
+        {% else %}
+          {{ heatback_normal }}
+        {% endif %}
+
+  - service: mqtt.publish
+    data:
+      topic: "setting/{{ hn5 }}/heatback"
+      payload: >
+        {% if diff_5 != 'none' and diff_5 is not none and diff_5 | float < overheat_threshold %}
+          {{ heatback_guard }}
+        {% else %}
+          {{ heatback_normal }}
+        {% endif %}
