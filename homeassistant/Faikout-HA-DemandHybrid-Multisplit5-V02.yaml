@@ -1,5 +1,5 @@
 blueprint:
-  name: Klima Demand Hybrid Control - Multisplit 5x mit Heatback (V02)
+  name: Klima Demand Hybrid Control - Multisplit bis 5 Zonen mit Heatback (V02)
   description: >
     **Wichtiger Hinweis vorab:**
     Bevor du dieses Blueprint einsetzt, müssen die Grundeinstellungen im Faikout
@@ -7,7 +7,8 @@ blueprint:
     vorgenommen werden:
     https://codeberg.org/RaW07/faikout-projects/src/branch/main/docs/advanced-control.md
 
-    Bedarfssteuerung für Multisplit-Klimaanlagen mit 5 festen Zonen (Faikout-Module).
+    Bedarfssteuerung für Multisplit-Klimaanlagen mit 1 bis 5 Zonen (Faikout-Module).
+    Zone 1 ist Pflicht, Zonen 2-5 sind optional.
     Berechnet den Worst-Case aus allen aktiven Zonen und steuert die Demand-Module synchron an.
     Überheizschutz per Zone: heatback wird individuell per MQTT angepasst, sodass eine
     überhitzte Zone gedrosselt wird ohne andere Zonen zu beeinflussen.
@@ -39,91 +40,107 @@ blueprint:
       selector:
         text:
 
-    # --- Zone 2 (Pflicht) ---
+    # --- Zone 2 (optional) ---
     hvac_2:
-      name: Innengerät 2 (Pflicht)
+      name: Innengerät 2 (optional)
+      default: ""
       selector:
         entity:
           domain: climate
     room_sensor_2:
-      name: Raumtemperatur 2 (Pflicht)
+      name: Raumtemperatur 2 (optional)
+      default: ""
       selector:
         entity:
           domain: sensor
           device_class: temperature
     demand_entity_2:
-      name: Demand Select Modul 2 (Pflicht)
+      name: Demand Select Modul 2 (optional)
+      default: ""
       selector:
         entity:
           domain: select
     hostname_2:
-      name: Faikout Hostname Modul 2
+      name: Faikout Hostname Modul 2 (optional)
+      default: ""
       selector:
         text:
 
-    # --- Zone 3 (Pflicht) ---
+    # --- Zone 3 (optional) ---
     hvac_3:
-      name: Innengerät 3 (Pflicht)
+      name: Innengerät 3 (optional)
+      default: ""
       selector:
         entity:
           domain: climate
     room_sensor_3:
-      name: Raumtemperatur 3 (Pflicht)
+      name: Raumtemperatur 3 (optional)
+      default: ""
       selector:
         entity:
           domain: sensor
           device_class: temperature
     demand_entity_3:
-      name: Demand Select Modul 3 (Pflicht)
+      name: Demand Select Modul 3 (optional)
+      default: ""
       selector:
         entity:
           domain: select
     hostname_3:
-      name: Faikout Hostname Modul 3
+      name: Faikout Hostname Modul 3 (optional)
+      default: ""
       selector:
         text:
 
-    # --- Zone 4 (Pflicht) ---
+    # --- Zone 4 (optional) ---
     hvac_4:
-      name: Innengerät 4 (Pflicht)
+      name: Innengerät 4 (optional)
+      default: ""
       selector:
         entity:
           domain: climate
     room_sensor_4:
-      name: Raumtemperatur 4 (Pflicht)
+      name: Raumtemperatur 4 (optional)
+      default: ""
       selector:
         entity:
           domain: sensor
           device_class: temperature
     demand_entity_4:
-      name: Demand Select Modul 4 (Pflicht)
+      name: Demand Select Modul 4 (optional)
+      default: ""
       selector:
         entity:
           domain: select
     hostname_4:
-      name: Faikout Hostname Modul 4
+      name: Faikout Hostname Modul 4 (optional)
+      default: ""
       selector:
         text:
 
-    # --- Zone 5 (Pflicht) ---
+    # --- Zone 5 (optional) ---
     hvac_5:
-      name: Innengerät 5 (Pflicht)
+      name: Innengerät 5 (optional)
+      default: ""
       selector:
         entity:
           domain: climate
     room_sensor_5:
-      name: Raumtemperatur 5 (Pflicht)
+      name: Raumtemperatur 5 (optional)
+      default: ""
       selector:
         entity:
           domain: sensor
           device_class: temperature
     demand_entity_5:
-      name: Demand Select Modul 5 (Pflicht)
+      name: Demand Select Modul 5 (optional)
+      default: ""
       selector:
         entity:
           domain: select
     hostname_5:
-      name: Faikout Hostname Modul 5
+      name: Faikout Hostname Modul 5 (optional)
+      default: ""
       selector:
         text:
 
@@ -216,20 +233,14 @@ blueprint:
 
 mode: restart
 
+# Trigger nur auf Zone 1 und Außentemperatur (immer vorhanden).
+# Optionale Zonen 2-5 werden über den 2-Minuten-Timer erfasst.
 trigger:
   - platform: state
     entity_id:
       - !input room_sensor_1
-      - !input room_sensor_2
-      - !input room_sensor_3
-      - !input room_sensor_4
-      - !input room_sensor_5
-      - !input outdoor_sensor
       - !input hvac_1
-      - !input hvac_2
-      - !input hvac_3
-      - !input hvac_4
-      - !input hvac_5
+      - !input outdoor_sensor
   - platform: time_pattern
     minutes: "/2"
 
@@ -237,14 +248,19 @@ action:
   - variables:
       hvac1: !input hvac_1
       sensor1: !input room_sensor_1
+      demand1: !input demand_entity_1
       hvac2: !input hvac_2
       sensor2: !input room_sensor_2
+      demand2: !input demand_entity_2
       hvac3: !input hvac_3
       sensor3: !input room_sensor_3
+      demand3: !input demand_entity_3
       hvac4: !input hvac_4
       sensor4: !input room_sensor_4
+      demand4: !input demand_entity_4
       hvac5: !input hvac_5
       sensor5: !input room_sensor_5
+      demand5: !input demand_entity_5
 
       hn1: !input hostname_1
       hn2: !input hostname_2
@@ -264,10 +280,9 @@ action:
       heatback_normal: !input heatback_normal
       heatback_guard: !input heatback_guard
 
-      demand_entity_ref: !input demand_entity_1
-      current_raw: "{{ states(demand_entity_ref) }}"
+      current_raw: "{{ states(demand1) }}"
 
-  # --- Worst-Case Soll-Ist-Abweichung + per-Zone Diffs (nur aktive Heizzonen) ---
+  # --- Per-Zone Diffs (nur konfigurierte und aktive Heizzonen) ---
   - variables:
       diff_1: >
         {% if is_state(hvac1, 'heat') and states(sensor1) not in ['unknown', 'unavailable'] %}
@@ -276,25 +291,25 @@ action:
           none
         {% endif %}
       diff_2: >
-        {% if is_state(hvac2, 'heat') and states(sensor2) not in ['unknown', 'unavailable'] %}
+        {% if hvac2 != '' and is_state(hvac2, 'heat') and states(sensor2) not in ['unknown', 'unavailable'] %}
           {{ state_attr(hvac2, 'temperature') | float(0) - states(sensor2) | float(0) }}
         {% else %}
           none
         {% endif %}
       diff_3: >
-        {% if is_state(hvac3, 'heat') and states(sensor3) not in ['unknown', 'unavailable'] %}
+        {% if hvac3 != '' and is_state(hvac3, 'heat') and states(sensor3) not in ['unknown', 'unavailable'] %}
           {{ state_attr(hvac3, 'temperature') | float(0) - states(sensor3) | float(0) }}
         {% else %}
           none
         {% endif %}
       diff_4: >
-        {% if is_state(hvac4, 'heat') and states(sensor4) not in ['unknown', 'unavailable'] %}
+        {% if hvac4 != '' and is_state(hvac4, 'heat') and states(sensor4) not in ['unknown', 'unavailable'] %}
           {{ state_attr(hvac4, 'temperature') | float(0) - states(sensor4) | float(0) }}
         {% else %}
           none
         {% endif %}
       diff_5: >
-        {% if is_state(hvac5, 'heat') and states(sensor5) not in ['unknown', 'unavailable'] %}
+        {% if hvac5 != '' and is_state(hvac5, 'heat') and states(sensor5) not in ['unknown', 'unavailable'] %}
           {{ state_attr(hvac5, 'temperature') | float(0) - states(sensor5) | float(0) }}
         {% else %}
           none
@@ -420,58 +435,78 @@ action:
           {{ heatback_normal }}
         {% endif %}
 
-  - service: mqtt.publish
-    data:
-      topic: "setting/{{ hn2 }}/heatback"
-      payload: >
-        {% if diff_2 != 'none' and diff_2 is not none and diff_2 | float < overheat_threshold %}
-          {{ heatback_guard }}
-        {% else %}
-          {{ heatback_normal }}
-        {% endif %}
+  - if:
+      - condition: template
+        value_template: "{{ hn2 != '' }}"
+    then:
+      - service: mqtt.publish
+        data:
+          topic: "setting/{{ hn2 }}/heatback"
+          payload: >
+            {% if diff_2 != 'none' and diff_2 is not none and diff_2 | float < overheat_threshold %}
+              {{ heatback_guard }}
+            {% else %}
+              {{ heatback_normal }}
+            {% endif %}
 
-  - service: mqtt.publish
-    data:
-      topic: "setting/{{ hn3 }}/heatback"
-      payload: >
-        {% if diff_3 != 'none' and diff_3 is not none and diff_3 | float < overheat_threshold %}
-          {{ heatback_guard }}
-        {% else %}
-          {{ heatback_normal }}
-        {% endif %}
+  - if:
+      - condition: template
+        value_template: "{{ hn3 != '' }}"
+    then:
+      - service: mqtt.publish
+        data:
+          topic: "setting/{{ hn3 }}/heatback"
+          payload: >
+            {% if diff_3 != 'none' and diff_3 is not none and diff_3 | float < overheat_threshold %}
+              {{ heatback_guard }}
+            {% else %}
+              {{ heatback_normal }}
+            {% endif %}
 
-  - service: mqtt.publish
-    data:
-      topic: "setting/{{ hn4 }}/heatback"
-      payload: >
-        {% if diff_4 != 'none' and diff_4 is not none and diff_4 | float < overheat_threshold %}
-          {{ heatback_guard }}
-        {% else %}
-          {{ heatback_normal }}
-        {% endif %}
+  - if:
+      - condition: template
+        value_template: "{{ hn4 != '' }}"
+    then:
+      - service: mqtt.publish
+        data:
+          topic: "setting/{{ hn4 }}/heatback"
+          payload: >
+            {% if diff_4 != 'none' and diff_4 is not none and diff_4 | float < overheat_threshold %}
+              {{ heatback_guard }}
+            {% else %}
+              {{ heatback_normal }}
+            {% endif %}
 
-  - service: mqtt.publish
-    data:
-      topic: "setting/{{ hn5 }}/heatback"
-      payload: >
-        {% if diff_5 != 'none' and diff_5 is not none and diff_5 | float < overheat_threshold %}
-          {{ heatback_guard }}
-        {% else %}
-          {{ heatback_normal }}
-        {% endif %}
+  - if:
+      - condition: template
+        value_template: "{{ hn5 != '' }}"
+    then:
+      - service: mqtt.publish
+        data:
+          topic: "setting/{{ hn5 }}/heatback"
+          payload: >
+            {% if diff_5 != 'none' and diff_5 is not none and diff_5 | float < overheat_threshold %}
+              {{ heatback_guard }}
+            {% else %}
+              {{ heatback_normal }}
+            {% endif %}
 
   # --- Demand nur senden wenn sich der Wert geändert hat ---
   - condition: template
-    value_template: "{{ states(demand_entity_ref) | regex_findall_index('[0-9]+') | float(0) != option }}"
+    value_template: "{{ states(demand1) | regex_findall_index('[0-9]+') | float(0) != option }}"
 
-  # --- Demand synchron an alle 5 Module senden ---
+  # --- Demand synchron an alle konfigurierten Module senden ---
+  - variables:
+      active_demand_entities: >
+        {% set ns = namespace(ids=[demand1]) %}
+        {% if demand2 != '' %}{% set ns.ids = ns.ids + [demand2] %}{% endif %}
+        {% if demand3 != '' %}{% set ns.ids = ns.ids + [demand3] %}{% endif %}
+        {% if demand4 != '' %}{% set ns.ids = ns.ids + [demand4] %}{% endif %}
+        {% if demand5 != '' %}{% set ns.ids = ns.ids + [demand5] %}{% endif %}
+        {{ ns.ids }}
+
   - service: select.select_option
     target:
-      entity_id:
-        - !input demand_entity_1
-        - !input demand_entity_2
-        - !input demand_entity_3
-        - !input demand_entity_4
-        - !input demand_entity_5
+      entity_id: "{{ active_demand_entities }}"
     data:
       option: "{{ option }}"
