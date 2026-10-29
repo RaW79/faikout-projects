@@ -85,7 +85,7 @@ The **Heizkurve** maps outdoor temperature to a base demand value and should be 
 
 Download: [Faikout-HA-DemandHybridV01.yaml](../homeassistant/Faikout-HA-DemandHybridV01.yaml)
 
-Download (Multisplit 5x with per-zone heatback): [Faikout-HA-DemandHybrid-Multisplit5-V02.yaml](../homeassistant/Faikout-HA-DemandHybrid-Multisplit5-V02.yaml)
+Download (Multisplit 1-5 zones, per-zone heatback): [Faikout-HA-DemandHybrid-Multisplit5-V03.yaml](../homeassistant/Faikout-HA-DemandHybrid-Multisplit5-V03.yaml)
 
 ![Blueprint configuration](img/ha-blueprint-hybrid.png)
 
@@ -168,6 +168,6 @@ Die **Heizkurve** bildet die Außentemperatur auf einen Basis-Demand-Wert ab und
 
 Download: [Faikout-HA-DemandHybridV01.yaml](../homeassistant/Faikout-HA-DemandHybridV01.yaml)
 
-Download (Multisplit 5x mit zonenbasiertem Heatback): [Faikout-HA-DemandHybrid-Multisplit5-V02.yaml](../homeassistant/Faikout-HA-DemandHybrid-Multisplit5-V02.yaml)
+Download (Multisplit 1-5 Zonen, Heatback je Zone): [Faikout-HA-DemandHybrid-Multisplit5-V03.yaml](../homeassistant/Faikout-HA-DemandHybrid-Multisplit5-V03.yaml)
 
 ![Blueprint-Konfiguration](img/ha-blueprint-hybrid.png)
