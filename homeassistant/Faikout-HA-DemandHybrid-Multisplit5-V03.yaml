@@ -10,8 +10,8 @@ blueprint:
     Bedarfssteuerung für Multisplit-Klimaanlagen mit 1 bis 5 Zonen (Faikout-Module).
     Zone 1 ist Pflicht, Zonen 2-5 sind optional.
     Berechnet den Worst-Case aus allen aktiven Zonen und steuert die Demand-Module synchron an.
-    Überheizschutz per Zone: heatback_normal und heatback_guard sind je Zone individuell
-    einstellbar, da jede Zone unterschiedliche Raumcharakteristik haben kann.
+    Überheizschutz vollständig zonenbasiert: heatback_normal, heatback_guard und
+    overheat_threshold sind je Zone individuell einstellbar.
 
     Multisplit-Hinweis: Alle Zonen teilen einen Kompressor. Der Demand muss daher
     für alle Module gleich sein und wird synchron gesendet.
@@ -57,6 +57,16 @@ blueprint:
           max: 15
           step: 0.5
           unit_of_measurement: "°C"
+    overheat_threshold_1:
+      name: Überheizschutz-Schwelle Zone 1 (Soll minus Ist)
+      description: Raum ist x°C über Sollwert -> heatback_guard aktiv. Standard -0.4
+      default: -0.4
+      selector:
+        number:
+          min: -2
+          max: 0
+          step: 0.1
+          unit_of_measurement: "°C"
 
     # --- Zone 2 (optional) ---
     hvac_2:
@@ -100,6 +110,16 @@ blueprint:
           min: 0
           max: 15
           step: 0.5
+          unit_of_measurement: "°C"
+    overheat_threshold_2:
+      name: Überheizschutz-Schwelle Zone 2 (Soll minus Ist)
+      description: Raum ist x°C über Sollwert -> heatback_guard aktiv. Standard -0.4
+      default: -0.4
+      selector:
+        number:
+          min: -2
+          max: 0
+          step: 0.1
           unit_of_measurement: "°C"
 
     # --- Zone 3 (optional) ---
@@ -145,6 +165,16 @@ blueprint:
           max: 15
           step: 0.5
           unit_of_measurement: "°C"
+    overheat_threshold_3:
+      name: Überheizschutz-Schwelle Zone 3 (Soll minus Ist)
+      description: Raum ist x°C über Sollwert -> heatback_guard aktiv. Standard -0.4
+      default: -0.4
+      selector:
+        number:
+          min: -2
+          max: 0
+          step: 0.1
+          unit_of_measurement: "°C"
 
     # --- Zone 4 (optional) ---
     hvac_4:
@@ -189,6 +219,16 @@ blueprint:
           max: 15
           step: 0.5
           unit_of_measurement: "°C"
+    overheat_threshold_4:
+      name: Überheizschutz-Schwelle Zone 4 (Soll minus Ist)
+      description: Raum ist x°C über Sollwert -> heatback_guard aktiv. Standard -0.4
+      default: -0.4
+      selector:
+        number:
+          min: -2
+          max: 0
+          step: 0.1
+          unit_of_measurement: "°C"
 
     # --- Zone 5 (optional) ---
     hvac_5:
@@ -232,6 +272,16 @@ blueprint:
           min: 0
           max: 15
           step: 0.5
+          unit_of_measurement: "°C"
+    overheat_threshold_5:
+      name: Überheizschutz-Schwelle Zone 5 (Soll minus Ist)
+      description: Raum ist x°C über Sollwert -> heatback_guard aktiv. Standard -0.4
+      default: -0.4
+      selector:
+        number:
+          min: -2
+          max: 0
+          step: 0.1
           unit_of_measurement: "°C"
 
     # --- Gemeinsame Sensoren & Parameter ---
@@ -282,19 +332,6 @@ blueprint:
           max: 100
           step: 5
 
-    overheat_threshold:
-      name: Überheizschutz-Schwelle (Soll minus Ist)
-      description: >
-        Wenn Raumtemperatur minus Sollwert diesen Wert unterschreitet, wird heatback_guard
-        der jeweiligen Zone aktiviert. Standard -0.4 entspricht: Raum ist 0.4°C über Sollwert.
-      default: -0.4
-      selector:
-        number:
-          min: -2
-          max: 0
-          step: 0.1
-          unit_of_measurement: "°C"
-
 mode: restart
 
 # Trigger nur auf Zone 1 und Außentemperatur (immer vorhanden).
@@ -316,6 +353,7 @@ action:
       hn1: !input hostname_1
       hbn1: !input heatback_normal_1
       hbg1: !input heatback_guard_1
+      oht1: !input overheat_threshold_1
 
       hvac2: !input hvac_2
       sensor2: !input room_sensor_2
@@ -323,6 +361,7 @@ action:
       hn2: !input hostname_2
       hbn2: !input heatback_normal_2
       hbg2: !input heatback_guard_2
+      oht2: !input overheat_threshold_2
 
       hvac3: !input hvac_3
       sensor3: !input room_sensor_3
@@ -330,6 +369,7 @@ action:
       hn3: !input hostname_3
       hbn3: !input heatback_normal_3
       hbg3: !input heatback_guard_3
+      oht3: !input overheat_threshold_3
 
       hvac4: !input hvac_4
       sensor4: !input room_sensor_4
@@ -337,6 +377,7 @@ action:
       hn4: !input hostname_4
       hbn4: !input heatback_normal_4
       hbg4: !input heatback_guard_4
+      oht4: !input overheat_threshold_4
 
       hvac5: !input hvac_5
       sensor5: !input room_sensor_5
@@ -344,6 +385,7 @@ action:
       hn5: !input hostname_5
       hbn5: !input heatback_normal_5
       hbg5: !input heatback_guard_5
+      oht5: !input overheat_threshold_5
 
       outdoor_sensor_entity: !input outdoor_sensor
       outdoor_curve_raw: !input outdoor_curve
@@ -353,7 +395,6 @@ action:
       raw_max: !input demand_max
       demand_min: "{{ [raw_min, raw_max] | min }}"
       demand_max: "{{ [raw_min, raw_max] | max }}"
-      overheat_threshold: !input overheat_threshold
 
       current_raw: "{{ states(demand1) }}"
 
@@ -462,10 +503,10 @@ action:
           {{ ns.val }}
         {% endif %}
 
-  # --- Ziel-Demand: demand_min wenn keine aktive Zone oder alle überhitzen ---
+  # --- Ziel-Demand: demand_min wenn keine aktive Zone vorhanden ---
   - variables:
       target_demand: >
-        {% if active_diffs | length == 0 or max_diff < overheat_threshold %}
+        {% if active_diffs | length == 0 %}
           {{ demand_min }}
         {% else %}
           {{ base_demand + correction }}
@@ -499,12 +540,12 @@ action:
           {{ val }}
         {% endif %}
 
-  # --- Heatback per Zone mit individuellen Werten (läuft immer) ---
+  # --- Heatback per Zone mit individuellen Werten und Schwellen (läuft immer) ---
   - service: mqtt.publish
     data:
       topic: "setting/{{ hn1 }}/heatback"
       payload: >
-        {% if diff_1 != 'none' and diff_1 is not none and diff_1 | float < overheat_threshold %}
+        {% if diff_1 != 'none' and diff_1 is not none and diff_1 | float < oht1 %}
           {{ hbg1 }}
         {% else %}
           {{ hbn1 }}
@@ -518,7 +559,7 @@ action:
         data:
           topic: "setting/{{ hn2 }}/heatback"
           payload: >
-            {% if diff_2 != 'none' and diff_2 is not none and diff_2 | float < overheat_threshold %}
+            {% if diff_2 != 'none' and diff_2 is not none and diff_2 | float < oht2 %}
               {{ hbg2 }}
             {% else %}
               {{ hbn2 }}
@@ -532,7 +573,7 @@ action:
         data:
           topic: "setting/{{ hn3 }}/heatback"
           payload: >
-            {% if diff_3 != 'none' and diff_3 is not none and diff_3 | float < overheat_threshold %}
+            {% if diff_3 != 'none' and diff_3 is not none and diff_3 | float < oht3 %}
               {{ hbg3 }}
             {% else %}
               {{ hbn3 }}
@@ -546,7 +587,7 @@ action:
         data:
           topic: "setting/{{ hn4 }}/heatback"
           payload: >
-            {% if diff_4 != 'none' and diff_4 is not none and diff_4 | float < overheat_threshold %}
+            {% if diff_4 != 'none' and diff_4 is not none and diff_4 | float < oht4 %}
               {{ hbg4 }}
             {% else %}
               {{ hbn4 }}
@@ -560,7 +601,7 @@ action:
         data:
           topic: "setting/{{ hn5 }}/heatback"
           payload: >
-            {% if diff_5 != 'none' and diff_5 is not none and diff_5 | float < overheat_threshold %}
+            {% if diff_5 != 'none' and diff_5 is not none and diff_5 | float < oht5 %}
               {{ hbg5 }}
             {% else %}
               {{ hbn5 }}
