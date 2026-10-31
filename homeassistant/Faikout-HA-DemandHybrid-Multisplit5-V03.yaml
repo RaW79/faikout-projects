@@ -9,12 +9,32 @@ blueprint:
 
     Bedarfssteuerung für Multisplit-Klimaanlagen mit 1 bis 5 Zonen (Faikout-Module).
     Zone 1 ist Pflicht, Zonen 2-5 sind optional.
-    Berechnet den Worst-Case aus allen aktiven Zonen und steuert die Demand-Module synchron an.
-    Überheizschutz vollständig zonenbasiert: heatback_normal, heatback_guard und
-    overheat_threshold sind je Zone individuell einstellbar.
 
-    Multisplit-Hinweis: Alle Zonen teilen einen Kompressor. Der Demand muss daher
-    für alle Module gleich sein und wird synchron gesendet.
+    **Wie die Demand-Regelung funktioniert:**
+    Der Demand (Leistungsvorgabe an das Außengerät, 30-100%) wird alle 2 Minuten neu
+    berechnet. Grundlage sind zwei Kurven:
+
+    1. Heizkurve (Außentemperatur -> Basis-Demand): Je kälter es draußen ist, desto
+    höher der Basis-Demand. Bei -10°C werden z.B. 70% angefordert, bei +10°C nur 40%.
+    Die Werte zwischen den Stützpunkten werden interpoliert.
+
+    2. Raumkorrektur (Soll-Ist-Differenz -> Korrektur): Ist ein Raum kälter als der
+    Sollwert (Diff > 0), wird der Demand nach oben korrigiert. Ist er wärmer (Diff < 0),
+    wird er reduziert. Maßgeblich ist immer die Zone mit der größten Abweichung (Worst-Case),
+    da alle Zonen denselben Kompressor teilen.
+
+    Ramping begrenzt die maximale Demand-Änderung pro Zyklus, um abrupte Sprünge am
+    Außengerät zu vermeiden.
+
+    **Überheizschutz:**
+    Überschreitet ein Raum seinen Sollwert um mehr als die eingestellte Schwelle, setzt
+    das Blueprint den heatback dieses Faikout-Moduls auf den Guard-Wert. Das zwingt den
+    Daikin zum sauberen Stopp statt zum Takten durch wiederholtes Anlaufen nach der
+    Mindestpausenzeit. Jede Zone hat eigene Werte für Normal, Guard und Schwelle. Sollen
+    beide Werte gleich sein, bleibt heatback konstant (kein Umschalten).
+
+    **Multisplit-Hinweis:** Alle Zonen teilen einen Kompressor. Der Demand wird daher
+    synchron an alle konfigurierten Module gesendet.
   domain: automation
 
   input:
@@ -37,10 +57,12 @@ blueprint:
           domain: select
     hostname_1:
       name: Faikout Hostname Modul 1 (z.B. faikout-abc123)
+      description: "Hostname des Faikout-Moduls, zu finden im Webinterface oder im MQTT-Topic: setting/<Hostname>/heatback"
       selector:
         text:
     heatback_normal_1:
       name: Heatback Normal Zone 1
+      description: "Normaler heatback-Wert (°C). Faikout berechnet SetDa = Innentemp - heatback. Standard: 3. Tipp: Guard-Wert = Normal-Wert -> kein Umschalten, heatback bleibt immer konstant."
       default: 3
       selector:
         number:
@@ -50,6 +72,7 @@ blueprint:
           unit_of_measurement: "°C"
     heatback_guard_1:
       name: Heatback Überheizschutz Zone 1
+      description: "heatback-Wert bei Überhitzung. Höherer Wert senkt SetDa -> Daikin stoppt sauber statt zu takten. Standard: 6."
       default: 6
       selector:
         number:
@@ -90,11 +113,13 @@ blueprint:
           domain: select
     hostname_2:
       name: Faikout Hostname Modul 2 (optional)
+      description: "Hostname des Faikout-Moduls, zu finden im Webinterface oder im MQTT-Topic: setting/<Hostname>/heatback"
       default: ""
       selector:
         text:
     heatback_normal_2:
       name: Heatback Normal Zone 2
+      description: "Normaler heatback-Wert (°C). Faikout berechnet SetDa = Innentemp - heatback. Standard: 3. Tipp: Guard-Wert = Normal-Wert -> kein Umschalten, heatback bleibt immer konstant."
       default: 3
       selector:
         number:
@@ -104,6 +129,7 @@ blueprint:
           unit_of_measurement: "°C"
     heatback_guard_2:
       name: Heatback Überheizschutz Zone 2
+      description: "heatback-Wert bei Überhitzung. Höherer Wert senkt SetDa -> Daikin stoppt sauber statt zu takten. Standard: 6."
       default: 6
       selector:
         number:
@@ -144,11 +170,13 @@ blueprint:
           domain: select
     hostname_3:
       name: Faikout Hostname Modul 3 (optional)
+      description: "Hostname des Faikout-Moduls, zu finden im Webinterface oder im MQTT-Topic: setting/<Hostname>/heatback"
       default: ""
       selector:
         text:
     heatback_normal_3:
       name: Heatback Normal Zone 3
+      description: "Normaler heatback-Wert (°C). Faikout berechnet SetDa = Innentemp - heatback. Standard: 3. Tipp: Guard-Wert = Normal-Wert -> kein Umschalten, heatback bleibt immer konstant."
       default: 3
       selector:
         number:
@@ -158,6 +186,7 @@ blueprint:
           unit_of_measurement: "°C"
     heatback_guard_3:
       name: Heatback Überheizschutz Zone 3
+      description: "heatback-Wert bei Überhitzung. Höherer Wert senkt SetDa -> Daikin stoppt sauber statt zu takten. Standard: 6."
       default: 6
       selector:
         number:
@@ -198,11 +227,13 @@ blueprint:
           domain: select
     hostname_4:
       name: Faikout Hostname Modul 4 (optional)
+      description: "Hostname des Faikout-Moduls, zu finden im Webinterface oder im MQTT-Topic: setting/<Hostname>/heatback"
       default: ""
       selector:
         text:
     heatback_normal_4:
       name: Heatback Normal Zone 4
+      description: "Normaler heatback-Wert (°C). Faikout berechnet SetDa = Innentemp - heatback. Standard: 3. Tipp: Guard-Wert = Normal-Wert -> kein Umschalten, heatback bleibt immer konstant."
       default: 3
       selector:
         number:
@@ -212,6 +243,7 @@ blueprint:
           unit_of_measurement: "°C"
     heatback_guard_4:
       name: Heatback Überheizschutz Zone 4
+      description: "heatback-Wert bei Überhitzung. Höherer Wert senkt SetDa -> Daikin stoppt sauber statt zu takten. Standard: 6."
       default: 6
       selector:
         number:
@@ -252,11 +284,13 @@ blueprint:
           domain: select
     hostname_5:
       name: Faikout Hostname Modul 5 (optional)
+      description: "Hostname des Faikout-Moduls, zu finden im Webinterface oder im MQTT-Topic: setting/<Hostname>/heatback"
       default: ""
       selector:
         text:
     heatback_normal_5:
       name: Heatback Normal Zone 5
+      description: "Normaler heatback-Wert (°C). Faikout berechnet SetDa = Innentemp - heatback. Standard: 3. Tipp: Guard-Wert = Normal-Wert -> kein Umschalten, heatback bleibt immer konstant."
       default: 3
       selector:
         number:
@@ -266,6 +300,7 @@ blueprint:
           unit_of_measurement: "°C"
     heatback_guard_5:
       name: Heatback Überheizschutz Zone 5
+      description: "heatback-Wert bei Überhitzung. Höherer Wert senkt SetDa -> Daikin stoppt sauber statt zu takten. Standard: 6."
       default: 6
       selector:
         number:
@@ -294,18 +329,21 @@ blueprint:
 
     outdoor_curve:
       name: Heizkurve (Außentemperatur -> Basis-Demand)
+      description: "JSON-Array aus [Außentemp, Demand]-Paaren. Zwischen den Punkten wird interpoliert. Kältere Außentemperatur -> höherer Basis-Demand. Beispiel: bei 0°C -> 55%, bei 10°C -> 40%."
       default: '[[-10,70],[-5,60],[0,55],[5,50],[10,40],[15,30]]'
       selector:
         text:
 
     correction_curve:
       name: Raumkorrektur (Temperaturdifferenz -> Korrektur-Demand)
+      description: "JSON-Array aus [Diff, Korrektur]-Paaren. Diff = Sollwert - Ist. Raum zu kalt (Diff > 0) -> positiver Aufschlag. Raum zu warm (Diff < 0) -> negativer Abschlag."
       default: '[[-0.5,-10],[-0.2,-5],[0,0],[0.5,5],[1.0,10]]'
       selector:
         text:
 
     ramp_step:
       name: Maximale Demand-Änderung pro Zyklus
+      description: "Begrenzt wie schnell der Demand steigen oder sinken darf (% pro 2-Min-Zyklus). Verhindert abrupte Sprünge am Außengerät. Standard: 5."
       default: 5
       selector:
         number:
@@ -316,6 +354,7 @@ blueprint:
 
     demand_min:
       name: Minimal Demand (30 bis 95)
+      description: "Untere Grenze des Demands. Auch wenn alle Räume warm sind, läuft das Außengerät nie unter diesem Wert. Standard: 30."
       default: 30
       selector:
         number:
@@ -325,6 +364,7 @@ blueprint:
 
     demand_max:
       name: Maximal Demand (35 bis 100)
+      description: "Obere Grenze des Demands. Kann zur Leistungsbegrenzung reduziert werden, z.B. bei Stromtarif-Steuerung. Standard: 100."
       default: 100
       selector:
         number:
