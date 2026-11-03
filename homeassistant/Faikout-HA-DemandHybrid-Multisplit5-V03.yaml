@@ -386,7 +386,14 @@ mode: restart
 
 # Trigger nur auf Zone 1 und Außentemperatur (immer vorhanden).
 # Optionale Zonen 2-5 werden über den 2-Minuten-Timer erfasst.
+# ha_start und reload: lockmode wird nur bei diesen Triggern gesendet (verhindert unnötige Faikout-Neustarts).
 trigger:
+  - platform: homeassistant
+    event: started
+    id: ha_start
+  - platform: event
+    event_type: automation_reloaded
+    id: reload
   - platform: state
     entity_id:
       - !input room_sensor_1
@@ -591,7 +598,7 @@ action:
           {{ val }}
         {% endif %}
 
-  # --- Heatback + lockmode per Zone (läuft immer) ---
+  # --- Heatback per Zone (läuft immer) ---
   - service: mqtt.publish
     data:
       topic: "setting/{{ hn1 }}/heatback"
@@ -601,10 +608,6 @@ action:
         {% else %}
           {{ hbn1 }}
         {% endif %}
-  - service: mqtt.publish
-    data:
-      topic: "setting/{{ hn1 }}/lockmode"
-      payload: "{{ lm }}"
 
   - if:
       - condition: template
@@ -619,10 +622,6 @@ action:
             {% else %}
               {{ hbn2 }}
             {% endif %}
-      - service: mqtt.publish
-        data:
-          topic: "setting/{{ hn2 }}/lockmode"
-          payload: "{{ lm }}"
 
   - if:
       - condition: template
@@ -637,10 +636,6 @@ action:
             {% else %}
               {{ hbn3 }}
             {% endif %}
-      - service: mqtt.publish
-        data:
-          topic: "setting/{{ hn3 }}/lockmode"
-          payload: "{{ lm }}"
 
   - if:
       - condition: template
@@ -655,10 +650,6 @@ action:
             {% else %}
               {{ hbn4 }}
             {% endif %}
-      - service: mqtt.publish
-        data:
-          topic: "setting/{{ hn4 }}/lockmode"
-          payload: "{{ lm }}"
 
   - if:
       - condition: template
@@ -673,10 +664,48 @@ action:
             {% else %}
               {{ hbn5 }}
             {% endif %}
+
+  # --- Lockmode nur bei HA-Start oder Automation-Reload senden (verhindert Faikout-Neustart bei jedem Zyklus) ---
+  - if:
+      - condition: template
+        value_template: "{{ trigger.id in ['ha_start', 'reload'] }}"
+    then:
       - service: mqtt.publish
         data:
-          topic: "setting/{{ hn5 }}/lockmode"
+          topic: "setting/{{ hn1 }}/lockmode"
           payload: "{{ lm }}"
+      - if:
+          - condition: template
+            value_template: "{{ hn2 != '' }}"
+        then:
+          - service: mqtt.publish
+            data:
+              topic: "setting/{{ hn2 }}/lockmode"
+              payload: "{{ lm }}"
+      - if:
+          - condition: template
+            value_template: "{{ hn3 != '' }}"
+        then:
+          - service: mqtt.publish
+            data:
+              topic: "setting/{{ hn3 }}/lockmode"
+              payload: "{{ lm }}"
+      - if:
+          - condition: template
+            value_template: "{{ hn4 != '' }}"
+        then:
+          - service: mqtt.publish
+            data:
+              topic: "setting/{{ hn4 }}/lockmode"
+              payload: "{{ lm }}"
+      - if:
+          - condition: template
+            value_template: "{{ hn5 != '' }}"
+        then:
+          - service: mqtt.publish
+            data:
+              topic: "setting/{{ hn5 }}/lockmode"
+              payload: "{{ lm }}"
 
   # --- Demand nur senden wenn sich der Wert geändert hat ---
   - condition: template
