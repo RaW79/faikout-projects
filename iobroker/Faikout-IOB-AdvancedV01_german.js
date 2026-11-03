@@ -1,6 +1,6 @@
 /***************************************************
- * DAIKIN Alias-Regelung V01 — Übergangszeit-tauglich
- * ==================================================
+ * DAIKIN Alias-Regelung v8.1 — mit Überhitzschutz
+ * ===============================================
  *
  * ZWECK
  * Übergeordnete Regelung für die Wohnzimmer-Daikin über das
@@ -14,7 +14,18 @@
  *     Soll/Ist-Abweichung
  * Zusätzlich: Wochen-Zeitplan, Komfortfunktionen und Respekt vor
  * manuellen Eingriffen. Aktiv nur im Heizmodus ("H"), in jedem
- * anderen Modus pausiert die Regelung (Warnung im Log).
+ * anderen Modus pausiert die Regelung (Warnung im Log, einmalig
+ * pro Moduswechsel).
+ *
+ * ÜBERHITZSCHUTZ
+ * Überschreitet der Raum autot + autor + 0,1°C, wird heatback
+ * von HEATBACK_NORMAL auf HEATBACK_GUARD erhöht. Der Faikout
+ * senkt damit SetDa weiter ab (≈ t.min), sodass der Daikin
+ * nach dem Kompressor-Stopp nicht im 3-Minuten-Rhythmus
+ * weitertaktet. Der Guard wird zurückgenommen sobald der Raum
+ * auf autot + autor - 0,1°C fällt. Funktioniert unabhängig
+ * von Bedarf oder Außentemperatur; in Kälteperioden wird
+ * autot + autor nie überschritten, der Guard greift dann nicht.
  *
  * ABLAUF
  * Ein Timer ruft jede Minute checkSchedule() auf:
@@ -89,14 +100,15 @@
  *   - ECO-Modus (econoAuto) wird eingeschaltet, falls aus
  *
  * NEUSTART
- * Beim Skriptstart wird der Zustand des Tages abgeleitet: Bereits
- * vergangene Trigger lösen nicht erneut aus. Liegt die Uhrzeit in
- * einer Phase, wird sie wiederhergestellt (Gerät an, Komfort,
- * Regelung). Außerhalb des Zeitplans wird nichts geschaltet.
+ * Beim Skriptstart wird heatback auf HEATBACK_NORMAL gesetzt und der
+ * Zustand des Tages abgeleitet: Bereits vergangene Trigger lösen
+ * nicht erneut aus. Liegt die Uhrzeit in einer Phase, wird sie
+ * wiederhergestellt (Gerät an, Komfort, Regelung). Außerhalb des
+ * Zeitplans wird nichts geschaltet.
  *
  * ALIASE / SENSOREN
  *   power, mode (H = Heizen), fan, swingv, econo, comfort,
- *   setTemp (autot), deadband (autor), demand
+ *   setTemp (autot), deadband (autor), demand, heatback
  *   Ist-Temperatur: alias.0.WohnzimmerEnv.ACTUAL
  *   Außentemperatur: Aussentemperatur-Datenpunkt der Daikin
  ***************************************************/
@@ -111,7 +123,8 @@ var ALIAS = {
     setTemp:  "alias.0.WohnzimmerDaikin.autot",
     deadband: "alias.0.WohnzimmerDaikin.autor",
     demand:   "alias.0.WohnzimmerDaikin.demand",
-    comfort:  "alias.0.WohnzimmerDaikin.comfort"   
+    comfort:  "alias.0.WohnzimmerDaikin.comfort",
+    heatback: "alias.0.WohnzimmerDaikin.heatback"
 };
 
 var SENSOR = {
@@ -119,13 +132,14 @@ var SENSOR = {
     outdoorTemp: "alias.0.WohnzimmerDaikin.Aussentemperatur"
 };
 
-var SETPOINT_STANDARD = 21.2;
+var SETPOINT_STANDARD = 21.5;
 var SETPOINT_LUXUS    = 21.8;
 var DEADBAND          = 0.3;
 var DEMAND_MIN        = 30;
 var DEMAND_REDUCE     = 5;
-var TEMP_TOLERANCE    = 0.5;   // Soll/Ist-Abweichung (K), ab der nicht mehr abgesenkt wird
+var TEMP_TOLERANCE    = 0.3;   // Soll/Ist-Abweichung (K), ab der nicht mehr abgesenkt wird
 var DEMAND_TOLERANCE  = 2;     // % Toleranz beim Vergleich curDemand vs lastWrittenDemand
+var SETPOINT_TOLERANCE = 0.05; // K Toleranz beim Vergleich autot vs zuletzt gesetzter Zeitplan-Sollwert
 var swingAuto         = true;
 var swingMaxMinutes   = 90;
 // Daikin schaltet den Comfort-Modus beim Swing selbstständig aus. Nach Ende des Auto-Swings
@@ -133,16 +147,24 @@ var swingMaxMinutes   = 90;
 var COMFORT_AFTER_SWING = true;
 var COMFORT_DELAY_SEC   = 2;     // kurze Pause zwischen Swing AUS und Comfort EIN
 var econoAuto         = true;
-var ENABLE_STANDARD   = false;
+var ENABLE_STANDARD   = true;
 var ENABLE_LUXUS      = true;
+
+// ÜBERHITZSCHUTZ
+var HEATBACK_NORMAL   = 3;    // normaler heatback-Wert
+var HEATBACK_GUARD    = 6;    // erhöhter heatback wenn Raum überhitzt (SetDa → t.min)
+// Guard ein:  actual >= autot + DEADBAND + OVERHEAT_HYSTERESIS
+// Guard aus:  actual <= autot + DEADBAND - OVERHEAT_HYSTERESIS
+var OVERHEAT_HYSTERESIS = 0.1;
+var EPS = 0.001;              // Gleitkomma-Toleranz für die Schwellenvergleiche
 
 // BOOST bei großer Soll/Ist-Abweichung (nur wenn Ist < Soll)
 // Es gilt die Stufe mit der größten erreichten Schwelle ("diff" in K, "add" in %-Punkten
 // auf den Außentemperatur-Demand). Beide Stufen frei anpassbar, weitere Stufen möglich.
 var BOOST_ENABLE     = true;
 var BOOST_STEPS = [
-    { diff: 0.5, add: 5  },   // Stufe 1: ab > 0,5 K unter Soll
-    { diff: 1.0, add: 10 }    // Stufe 2: ab > 1,0 K unter Soll
+    { diff: 0.5, add: 10  },   // Stufe 1: ab > 0,5 K unter Soll
+    { diff: 1.0, add: 20 }    // Stufe 2: ab > 1,0 K unter Soll
 ];
 var BOOST_MAX_DEMAND = 95;    // Deckel für den Boost (zw. 95 und 100 gibt es laut Forum einen großen Sprung)
 
@@ -164,18 +186,14 @@ var scheduleConfig = {
 };
 
 var demandCurve = [
-    { temp: -5, demand: 60 },
-    { temp:  0, demand: 55 },
-    { temp:  5, demand: 50 },
-    { temp: 10, demand: 45 },
+    { temp: -5, demand: 65 },
+    { temp:  0, demand: 60 },
+    { temp:  5, demand: 55 },
+    { temp: 10, demand: 50 },
     { temp: 15, demand: DEMAND_MIN }
 ];
 
-/***************************************************
- * =================================================
- *   AB HIER NICHTS MEHR ÄNDERN
- * =================================================
- ***************************************************/
+//  ENDE Konfiguration / Eingabebereich
 
 // ZUSTÄNDE
 var lastScheduledSetpoint = null;
@@ -192,21 +210,46 @@ var lastStdOn  = "";
 var lastStdOff = "";
 var lastLuxOn  = "";
 var lastLuxOff = "";
+var heatbackGuardActive   = false;   // Überhitzschutz-Status
+var lastModeWarned        = null;    // zuletzt gewarnter Nicht-Heizmodus (Log-Drossel)
 
 // HILFSFUNKTIONEN
 function isHeatingMode() {
     var s = getState(ALIAS.mode);
     var mode = s ? s.val : "H";
     if (mode !== "H") {
-        log("Modus " + mode + " - Regelung pausiert", "warn");
+        if (lastModeWarned !== mode) {
+            log("Modus " + mode + " - Regelung pausiert", "warn");
+            lastModeWarned = mode;
+        }
+        // aktiven Überhitzschutz zurücknehmen, da die Regelung pausiert
+        if (heatbackGuardActive) {
+            heatbackGuardActive = false;
+            setIfChanged(ALIAS.heatback, HEATBACK_NORMAL);
+            log("Überhitzschutz AUS (Moduswechsel): heatback " + HEATBACK_GUARD + "→" + HEATBACK_NORMAL);
+        }
         return false;
     }
+    lastModeWarned = null;
     return true;
 }
 
 function isPowerOn() {
     var s = getState(ALIAS.power);
     return s && s.val === true;
+}
+
+// Ist-Temperatur lesen, bei ungültigem Wert Fallback
+function readActualTemp(fallback) {
+    var sa = getState(SENSOR.actualTemp);
+    var v = sa ? parseFloat(sa.val) : NaN;
+    return isNaN(v) ? fallback : v;
+}
+
+function readOutdoorTemp() {
+    var so = getState(SENSOR.outdoorTemp);
+    var v = so ? parseFloat(so.val) : NaN;
+    return isNaN(v) ? 10 : v;
 }
 
 // Nur schreiben, wenn das Gerät vom Zielwert abweicht
@@ -271,10 +314,13 @@ function activateComfortFeatures() {
         setState(ALIAS.fan, "A", false);
     }
 
-    var ss = getState(ALIAS.swingv);
-    if (swingAuto && (!ss || ss.val !== true)) {
-        setState(ALIAS.swingv, true, false);
-        clearSwingTimer();
+    // Timer unabhängig vom Gerätezustand starten, damit der Swing nach Skriptneustart
+    // oder nach Abschalten innerhalb der Laufzeit nie unbegrenzt weiterläuft
+    if (swingAuto && !swingTimer) {
+        var ss = getState(ALIAS.swingv);
+        if (!ss || ss.val !== true) {
+            setState(ALIAS.swingv, true, false);
+        }
         swingTimer = setTimeout(function() {
             swingTimer = null;
             setState(ALIAS.swingv, false, false);
@@ -331,13 +377,31 @@ function adjustDemand(base, actual, target) {
     return Math.max(base - DEMAND_REDUCE, DEMAND_MIN);
 }
 
+// Überhitzschutz: heatback erhöhen wenn Raum über autot+autor+0.1°C
+function updateHeatbackGuard(actual, setpoint) {
+    var onThreshold  = setpoint + DEADBAND + OVERHEAT_HYSTERESIS;
+    var offThreshold = setpoint + DEADBAND - OVERHEAT_HYSTERESIS;
+
+    if (!heatbackGuardActive && actual >= onThreshold - EPS) {
+        heatbackGuardActive = true;
+        setIfChanged(ALIAS.heatback, HEATBACK_GUARD);
+        log("Überhitzschutz EIN: heatback " + HEATBACK_NORMAL + "→" + HEATBACK_GUARD +
+            " (Raum " + actual + "°C ≥ " + onThreshold.toFixed(2) + "°C)");
+    } else if (heatbackGuardActive && actual <= offThreshold + EPS) {
+        heatbackGuardActive = false;
+        setIfChanged(ALIAS.heatback, HEATBACK_NORMAL);
+        log("Überhitzschutz AUS: heatback " + HEATBACK_GUARD + "→" + HEATBACK_NORMAL +
+            " (Raum " + actual + "°C ≤ " + offThreshold.toFixed(2) + "°C)");
+    }
+}
+
 function checkManualOverride() {
     // Sollwert-Override
     var s = getState(ALIAS.setTemp);
     var cur = s ? parseFloat(s.val) : null;
-    if (cur !== null &&
+    if (cur !== null && !isNaN(cur) &&
         lastScheduledSetpoint !== null &&
-        cur !== lastScheduledSetpoint &&
+        Math.abs(cur - lastScheduledSetpoint) > SETPOINT_TOLERANCE &&
         !manualOverrideActive) {
         manualOverrideActive = true;
         manualSetpoint = cur;
@@ -389,17 +453,15 @@ function resetOverrides() {
     manualDemandOverride = false;
     lastWrittenDemand    = null;
     lastDemandChangeTs   = 0;
+    heatbackGuardActive  = false;
+    setIfChanged(ALIAS.heatback, HEATBACK_NORMAL);
 }
 
 // Reguläre Schedule-Regelung mit Override-Erkennung
 function applyControlWithManual(setpoint) {
     if (!isHeatingMode()) return;
-    var sa = getState(SENSOR.actualTemp);
-    var so = getState(SENSOR.outdoorTemp);
-    var actual  = sa ? parseFloat(sa.val) : setpoint;
-    var outdoor = so ? parseFloat(so.val) : 10;
-    if (isNaN(actual))  actual  = setpoint;
-    if (isNaN(outdoor)) outdoor = 10;
+    var actual  = readActualTemp(setpoint);
+    var outdoor = readOutdoorTemp();
 
     // Sollwert
     if (manualOverrideActive) {
@@ -410,6 +472,9 @@ function applyControlWithManual(setpoint) {
         setIfChanged(ALIAS.setTemp, setpoint);
     }
     setIfChanged(ALIAS.deadband, DEADBAND);
+
+    // Überhitzschutz (mit dem tatsächlich gültigen Sollwert)
+    updateHeatbackGuard(actual, setpoint);
 
     // Demand
     if (manualDemandOverride) {
@@ -430,18 +495,14 @@ function applyControlWithManual(setpoint) {
 function applyManualSupport() {
     if (!isHeatingMode()) return;
     var st = getState(ALIAS.setTemp);
-    var sa = getState(SENSOR.actualTemp);
-    var so = getState(SENSOR.outdoorTemp);
 
     var setpoint = st ? parseFloat(st.val) : null;
     if (setpoint === null || isNaN(setpoint)) {
         log("Manuell: kein gültiger Sollwert lesbar, übersprungen", "warn");
         return;
     }
-    var actual  = sa ? parseFloat(sa.val) : setpoint;
-    var outdoor = so ? parseFloat(so.val) : 10;
-    if (isNaN(actual))  actual  = setpoint;
-    if (isNaN(outdoor)) outdoor = 10;
+    var actual  = readActualTemp(setpoint);
+    var outdoor = readOutdoorTemp();
 
     // Komfort einmalig pro manueller Session
     if (MANUAL_TOUCH_COMFORT && !manualComfortApplied) {
@@ -449,6 +510,9 @@ function applyManualSupport() {
         manualComfortApplied = true;
         log("Manuell: Komfortfeatures initial gesetzt");
     }
+
+    // Überhitzschutz
+    updateHeatbackGuard(actual, setpoint);
 
     setIfChanged(ALIAS.deadband, DEADBAND);
 
@@ -474,7 +538,8 @@ function checkSchedule() {
     var hm  = now.toTimeString().slice(0, 5);
     var day = now.toDateString();
 
-    checkManualOverride();
+    // Übersteuerungen nur erkennen, solange eine Phase oder manuelle Session aktiv ist
+    if (activeSchedule || manualSessionActive) checkManualOverride();
 
     // --- Schedule-Trigger ---
     if (ENABLE_STANDARD && hm >= scheduleConfig.startStandard[wd] && lastStdOn !== day) {
@@ -558,6 +623,9 @@ function initOnStart() {
     var hm  = now.toTimeString().slice(0, 5);
     var day = now.toDateString();
 
+    // Guard-Flag ist nach dem Start false, der Faikout kann noch HEATBACK_GUARD halten
+    setIfChanged(ALIAS.heatback, HEATBACK_NORMAL);
+
     if (hm >= scheduleConfig.startStandard[wd]) lastStdOn  = day;
     if (hm >= scheduleConfig.stopStandard[wd])  lastStdOff = day;
     if (hm >= scheduleConfig.startLuxus[wd])    lastLuxOn  = day;
@@ -587,4 +655,4 @@ function initOnStart() {
 
 initOnStart();
 schedule("* * * * *", checkSchedule);
-log("DAIKIN Regelung V01 gestartet");
+log("DAIKIN Regelung v8.1 gestartet");
