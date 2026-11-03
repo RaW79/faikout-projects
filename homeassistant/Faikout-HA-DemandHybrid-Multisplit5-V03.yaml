@@ -2,8 +2,8 @@ blueprint:
   name: Klima Demand Hybrid Control - Multisplit bis 5 Zonen mit Heatback (V03)
   description: >
     **Wichtiger Hinweis vorab:**
-    Bevor du dieses Blueprint einsetzt, müssen folgende Einstellungen im Faikout
-    vorgenommen werden: heatover (passend zur Anlage einstellen) und lockmode (aktivieren).
+    Bevor du dieses Blueprint einsetzt, muss heatover im Faikout passend zur Anlage
+    eingestellt werden. lockmode kann unten zentral konfiguriert werden (Standard: 1 = aktiv).
     Weitere Informationen in der Dokumentation:
     https://codeberg.org/RaW07/faikout-projects/src/branch/main/docs/advanced-control.md
 
@@ -372,6 +372,16 @@ blueprint:
           max: 100
           step: 5
 
+    lockmode:
+      name: Lockmode setzen (0 oder 1)
+      description: "Setzt lockmode auf allen konfigurierten Faikout-Modulen bei jedem Durchlauf. 1 = aktiv (Blueprint verhindert automatischen Moduswechsel durch Faikout). 0 = Blueprint setzt lockmode nicht. Standard: 1."
+      default: 1
+      selector:
+        number:
+          min: 0
+          max: 1
+          step: 1
+
 mode: restart
 
 # Trigger nur auf Zone 1 und Außentemperatur (immer vorhanden).
@@ -435,6 +445,7 @@ action:
       raw_max: !input demand_max
       demand_min: "{{ [raw_min, raw_max] | min }}"
       demand_max: "{{ [raw_min, raw_max] | max }}"
+      lm: !input lockmode
 
       current_raw: "{{ states(demand1) }}"
 
@@ -580,7 +591,7 @@ action:
           {{ val }}
         {% endif %}
 
-  # --- Heatback per Zone mit individuellen Werten und Schwellen (läuft immer) ---
+  # --- Heatback + lockmode per Zone (läuft immer) ---
   - service: mqtt.publish
     data:
       topic: "setting/{{ hn1 }}/heatback"
@@ -590,6 +601,10 @@ action:
         {% else %}
           {{ hbn1 }}
         {% endif %}
+  - service: mqtt.publish
+    data:
+      topic: "setting/{{ hn1 }}/lockmode"
+      payload: "{{ lm }}"
 
   - if:
       - condition: template
@@ -604,6 +619,10 @@ action:
             {% else %}
               {{ hbn2 }}
             {% endif %}
+      - service: mqtt.publish
+        data:
+          topic: "setting/{{ hn2 }}/lockmode"
+          payload: "{{ lm }}"
 
   - if:
       - condition: template
@@ -618,6 +637,10 @@ action:
             {% else %}
               {{ hbn3 }}
             {% endif %}
+      - service: mqtt.publish
+        data:
+          topic: "setting/{{ hn3 }}/lockmode"
+          payload: "{{ lm }}"
 
   - if:
       - condition: template
@@ -632,6 +655,10 @@ action:
             {% else %}
               {{ hbn4 }}
             {% endif %}
+      - service: mqtt.publish
+        data:
+          topic: "setting/{{ hn4 }}/lockmode"
+          payload: "{{ lm }}"
 
   - if:
       - condition: template
@@ -646,6 +673,10 @@ action:
             {% else %}
               {{ hbn5 }}
             {% endif %}
+      - service: mqtt.publish
+        data:
+          topic: "setting/{{ hn5 }}/lockmode"
+          payload: "{{ lm }}"
 
   # --- Demand nur senden wenn sich der Wert geändert hat ---
   - condition: template
