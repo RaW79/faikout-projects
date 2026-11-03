@@ -372,16 +372,40 @@ function calcBoost(diff) {
 
 function adjustDemand(base, actual, target) {
     var diff = target - actual;
+    var diffStr = "diff=" + diff.toFixed(1) + "K";
+    var val, info;
+
     if (diff <= 0) {
         stopSwing();
-        return Math.max(base - DEMAND_REDUCE, DEMAND_MIN);
+        val = Math.max(base - DEMAND_REDUCE, DEMAND_MIN);
+        return { val: val, info: diffStr + " ≤0 Reduce-" + DEMAND_REDUCE };
     }
+
     if (diff > TEMP_TOLERANCE) {
-        // weit unter Soll: Außentemperatur-Demand + Boost, gedeckelt
-        var boosted = base + calcBoost(diff);
-        return Math.min(boosted, Math.max(base, BOOST_MAX_DEMAND));
+        var bestStep = null;
+        var firstMissed = null;
+        for (var i = 0; i < BOOST_STEPS.length; i++) {
+            if (diff > BOOST_STEPS[i].diff) {
+                bestStep = BOOST_STEPS[i];
+            } else if (firstMissed === null) {
+                firstMissed = BOOST_STEPS[i];
+            }
+        }
+        if (BOOST_ENABLE && bestStep) {
+            val = Math.min(base + bestStep.add, Math.max(base, BOOST_MAX_DEMAND));
+            info = diffStr + " Boost+" + bestStep.add;
+            if (firstMissed) info += " <" + firstMissed.diff + " kein Boost+" + firstMissed.add;
+        } else {
+            val = base;
+            info = BOOST_ENABLE
+                ? diffStr + " <" + firstMissed.diff + " kein Boost >" + TEMP_TOLERANCE + " kein Reduce"
+                : diffStr + " >" + TEMP_TOLERANCE + " Boost deaktiviert kein Reduce";
+        }
+        return { val: val, info: info };
     }
-    return Math.max(base - DEMAND_REDUCE, DEMAND_MIN);
+
+    val = Math.max(base - DEMAND_REDUCE, DEMAND_MIN);
+    return { val: val, info: diffStr + " ≤" + TEMP_TOLERANCE + " Reduce-" + DEMAND_REDUCE };
 }
 
 // Überhitzschutz: heatback erhöhen wenn Raum über autot+autor+0.1°C
@@ -492,10 +516,10 @@ function applyControlWithManual(setpoint) {
     }
 
     var baseDemand = calcBaseDemand(outdoor);
-    var demand     = adjustDemand(baseDemand, actual, setpoint);
-    writeDemand(demand);
+    var result     = adjustDemand(baseDemand, actual, setpoint);
+    writeDemand(result.val);
 
-    log("Schedule: Soll=" + setpoint + "°C Ist=" + actual + "°C Außen=" + outdoor + "°C Demand=" + demandText(demand));
+    log("Schedule: Soll=" + setpoint + "°C Ist=" + actual + "°C Außen=" + outdoor + "°C " + result.info + " Demand=" + demandText(result.val));
 }
 
 // Regelung im manuellen Betrieb — Sollwert NICHT anfassen
@@ -532,10 +556,10 @@ function applyManualSupport() {
     }
 
     var baseDemand = calcBaseDemand(outdoor);
-    var demand     = adjustDemand(baseDemand, actual, setpoint);
-    writeDemand(demand);
+    var result     = adjustDemand(baseDemand, actual, setpoint);
+    writeDemand(result.val);
 
-    log("Manuell: Soll=" + setpoint + "°C Ist=" + actual + "°C Außen=" + outdoor + "°C Demand=" + demandText(demand));
+    log("Manuell: Soll=" + setpoint + "°C Ist=" + actual + "°C Außen=" + outdoor + "°C " + result.info + " Demand=" + demandText(result.val));
 }
 
 // ZEITPLANSTEUERUNG
