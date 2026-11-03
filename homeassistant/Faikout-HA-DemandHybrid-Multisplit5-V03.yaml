@@ -3,8 +3,8 @@ blueprint:
   description: >
     **Wichtiger Hinweis vorab:**
     Bevor du dieses Blueprint einsetzt, muss heatover im Faikout passend zur Anlage
-    eingestellt werden. Empfehlung: lockmode am Faikout aktivieren, damit kein automatischer
-    Moduswechsel durch den Faikout erfolgt (MQTT: setting/&lt;Hostname&gt;/lockmode, Wert: 1).
+    eingestellt werden. Empfehlung: lockmode in der Faikout-Weboberfläche aktivieren, damit
+    kein automatischer Moduswechsel durch den Faikout erfolgt.
     Weitere Informationen in der Dokumentation:
     https://codeberg.org/RaW07/faikout-projects/src/branch/main/docs/advanced-control.md
 

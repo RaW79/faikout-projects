@@ -95,7 +95,7 @@
  * switching between heating and cooling. Without lockmode, the Faikout
  * may switch to cooling on its own, causing this script to pause and
  * the unit to run uncontrolled.
- * Set once: MQTT topic setting/<Hostname>/lockmode, value: 1
+ * Enable once in the Faikout web interface.
  *
  * ALIASES / SENSORS
  *   power, mode (H = Heating), fan, swingv, econo, comfort,

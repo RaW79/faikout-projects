@@ -111,7 +111,7 @@
  * Moduswechsel zwischen Heizen und Kühlen stattfindet. Ohne lockmode
  * kann der Faikout selbstständig in den Kühlmodus wechseln, woraufhin
  * dieses Skript pausiert und das Gerät unkontrolliert läuft.
- * Einmalig setzen: MQTT topic setting/<Hostname>/lockmode, Wert: 1
+ * Einmalig in der Faikout-Weboberfläche aktivieren.
  *
  * ALIASE / SENSOREN
  *   power, mode (H = Heizen), fan, swingv, econo, comfort,

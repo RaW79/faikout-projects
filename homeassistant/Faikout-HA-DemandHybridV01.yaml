@@ -3,8 +3,8 @@ blueprint:
   description: >
     Demand Regelung für Klimageräte mit Außentemperatur, Raumkorrektur und Ramping.
     Rundet Demand auf gültige 5%-Schritte (30-100).
-    Empfehlung: lockmode am Faikout aktivieren, damit kein automatischer Moduswechsel
-    durch den Faikout erfolgt (MQTT: setting/&lt;Hostname&gt;/lockmode, Wert: 1).
+    Empfehlung: lockmode in der Faikout-Weboberfläche aktivieren, damit kein automatischer
+    Moduswechsel durch den Faikout erfolgt.
   domain: automation
 
   input:
