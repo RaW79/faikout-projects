@@ -2,9 +2,9 @@ blueprint:
   name: Klima Demand Hybrid Control - Multisplit bis 5 Zonen mit Heatback (V03)
   description: >
     **Wichtiger Hinweis vorab:**
-    Bevor du dieses Blueprint einsetzt, müssen die Grundeinstellungen im Faikout
-    (Thermostatmodus, heatover, heatback, lockmode) wie in der Dokumentation beschrieben
-    vorgenommen werden:
+    Bevor du dieses Blueprint einsetzt, müssen folgende Einstellungen im Faikout
+    vorgenommen werden: heatover (passend zur Anlage einstellen) und lockmode (aktivieren).
+    Weitere Informationen in der Dokumentation:
     https://codeberg.org/RaW07/faikout-projects/src/branch/main/docs/advanced-control.md
 
     Bedarfssteuerung für Multisplit-Klimaanlagen mit 1 bis 5 Zonen (Faikout-Module).
