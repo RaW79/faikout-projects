@@ -50,11 +50,9 @@
  *      Je wärmer es draußen ist, desto niedriger die Basis, am
  *      Ende der Kennlinie DEMAND_MIN.
  *   2. Anpassung nach diff = Soll - Ist:
- *      - diff <= 0 (Soll erreicht/überschritten):
- *          Basis - DEMAND_REDUCE (nicht unter DEMAND_MIN),
- *          ein laufender Auto-Swing wird beendet
- *      - 0 < diff <= TEMP_TOLERANCE (nahe am Soll):
- *          Basis - DEMAND_REDUCE (nicht unter DEMAND_MIN)
+ *      - diff <= TEMP_TOLERANCE: Kennlinie unverändert. Der Faikout
+ *          übernimmt Ein/Aus, der Überhitzschutz greift bei Bedarf.
+ *          Ein laufender Auto-Swing wird bei diff <= 0 beendet.
  *      - diff > TEMP_TOLERANCE (weit unter Soll):
  *          Basis + Boost. Der Boost ist in BOOST_STEPS gestuft
  *          (Schwelle in K, Aufschlag in %-Punkten), es gilt die
@@ -143,8 +141,7 @@ var SETPOINT_STANDARD = 21.5;
 var SETPOINT_LUXUS    = 21.8;
 var DEADBAND          = 0.3;
 var DEMAND_MIN        = 30;
-var DEMAND_REDUCE     = 5;
-var TEMP_TOLERANCE    = 0.3;   // Soll/Ist-Abweichung (K), ab der nicht mehr abgesenkt wird
+var TEMP_TOLERANCE    = 0.3;   // Soll/Ist-Abweichung (K), ab der Boost greift
 var DEMAND_TOLERANCE  = 2;     // % Toleranz beim Vergleich curDemand vs lastWrittenDemand
 var SETPOINT_TOLERANCE = 0.05; // K Toleranz beim Vergleich autot vs zuletzt gesetzter Zeitplan-Sollwert
 var swingAuto         = true;
@@ -355,31 +352,12 @@ function calcBaseDemand(outTemp) {
     return DEMAND_MIN;
 }
 
-// Boost-Aufschlag (%-Punkte) für eine Abweichung diff = Soll - Ist
-function calcBoost(diff) {
-    if (!BOOST_ENABLE) return 0;
-    var bestDiff = -1;
-    var add = 0;
-    for (var i = 0; i < BOOST_STEPS.length; i++) {
-        var st = BOOST_STEPS[i];
-        if (diff > st.diff && st.diff > bestDiff) {
-            bestDiff = st.diff;
-            add = st.add;
-        }
-    }
-    return add;
-}
-
 function adjustDemand(base, actual, target) {
     var diff = target - actual;
     var diffStr = "diff=" + diff.toFixed(1) + "K";
     var val, info;
 
-    if (diff <= 0) {
-        stopSwing();
-        val = Math.max(base - DEMAND_REDUCE, DEMAND_MIN);
-        return { val: val, info: diffStr + " ≤0 Reduce-" + DEMAND_REDUCE };
-    }
+    if (diff <= 0) stopSwing();
 
     if (diff > TEMP_TOLERANCE) {
         var bestStep = null;
@@ -398,14 +376,13 @@ function adjustDemand(base, actual, target) {
         } else {
             val = base;
             info = BOOST_ENABLE
-                ? diffStr + " <" + firstMissed.diff + " kein Boost >" + TEMP_TOLERANCE + " kein Reduce"
-                : diffStr + " >" + TEMP_TOLERANCE + " Boost deaktiviert kein Reduce";
+                ? diffStr + " <" + firstMissed.diff + " kein Boost"
+                : diffStr + " Boost deaktiviert";
         }
         return { val: val, info: info };
     }
 
-    val = Math.max(base - DEMAND_REDUCE, DEMAND_MIN);
-    return { val: val, info: diffStr + " ≤" + TEMP_TOLERANCE + " Reduce-" + DEMAND_REDUCE };
+    return { val: base, info: diffStr + " ≤" + TEMP_TOLERANCE + " Kennlinie" };
 }
 
 // Überhitzschutz: heatback erhöhen wenn Raum über autot+autor+0.1°C
