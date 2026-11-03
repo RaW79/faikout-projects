@@ -79,13 +79,13 @@ The **Heizkurve** maps outdoor temperature to a base demand value and should be 
 #### Installation
 
 1. In Home Assistant go to **Settings → Blueprints → Import Blueprint**
-2. Use the raw file URL from Codeberg, or copy the YAML file manually to `/config/blueprints/automation/faikout/`
+2. Use the GitHub raw URL (download link below) directly in HA, or copy the YAML file manually to `/config/blueprints/automation/faikout/`
 3. Reload Blueprints, then create a new automation from the Blueprint
 4. Assign your Faikout entities and adjust curves to your setup
 
-Download: [Faikout-HA-DemandHybridV01.yaml](../homeassistant/Faikout-HA-DemandHybridV01.yaml)
+Download: [Faikout-HA-DemandHybridV01.yaml](https://raw.githubusercontent.com/RaW79/faikout-projects/main/homeassistant/Faikout-HA-DemandHybridV01.yaml)
 
-Download (Multisplit 1-5 zones, per-zone heatback): [Faikout-HA-DemandHybrid-Multisplit5-V03.yaml](../homeassistant/Faikout-HA-DemandHybrid-Multisplit5-V03.yaml)
+Download (Multisplit 1-5 zones, per-zone heatback): [Faikout-HA-DemandHybrid-Multisplit5-V03.yaml](https://raw.githubusercontent.com/RaW79/faikout-projects/main/homeassistant/Faikout-HA-DemandHybrid-Multisplit5-V03.yaml)
 
 ![Blueprint configuration](img/ha-blueprint-hybrid.png)
 
@@ -162,12 +162,12 @@ Die **Heizkurve** bildet die Außentemperatur auf einen Basis-Demand-Wert ab und
 #### Installation
 
 1. In Home Assistant unter **Einstellungen → Blueprints → Blueprint importieren**
-2. Die Raw-URL von Codeberg verwenden, oder die YAML-Datei manuell nach `/config/blueprints/automation/faikout/` kopieren
+2. Die GitHub Raw-URL (Download-Link unten) direkt in HA einfügen, oder die YAML-Datei manuell nach `/config/blueprints/automation/faikout/` kopieren
 3. Blueprints neu laden, dann eine neue Automation aus dem Blueprint erstellen
 4. Faikout-Entitäten zuweisen und Kurven an das eigene Setup anpassen
 
-Download: [Faikout-HA-DemandHybridV01.yaml](../homeassistant/Faikout-HA-DemandHybridV01.yaml)
+Download: [Faikout-HA-DemandHybridV01.yaml](https://raw.githubusercontent.com/RaW79/faikout-projects/main/homeassistant/Faikout-HA-DemandHybridV01.yaml)
 
-Download (Multisplit 1-5 Zonen, Heatback je Zone): [Faikout-HA-DemandHybrid-Multisplit5-V03.yaml](../homeassistant/Faikout-HA-DemandHybrid-Multisplit5-V03.yaml)
+Download (Multisplit 1-5 Zonen, Heatback je Zone): [Faikout-HA-DemandHybrid-Multisplit5-V03.yaml](https://raw.githubusercontent.com/RaW79/faikout-projects/main/homeassistant/Faikout-HA-DemandHybrid-Multisplit5-V03.yaml)
 
 ![Blueprint-Konfiguration](img/ha-blueprint-hybrid.png)
