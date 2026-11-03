@@ -90,6 +90,13 @@
  * it is restored (unit on, comfort, control). Nothing is switched
  * outside the schedule.
  *
+ * PREREQUISITE ON THE FAIKOUT
+ * lockmode must be enabled on the Faikout to prevent automatic mode
+ * switching between heating and cooling. Without lockmode, the Faikout
+ * may switch to cooling on its own, causing this script to pause and
+ * the unit to run uncontrolled.
+ * Set once: MQTT topic setting/<Hostname>/lockmode, value: 1
+ *
  * ALIASES / SENSORS
  *   power, mode (H = Heating), fan, swingv, econo, comfort,
  *   setTemp (autot), deadband (autor), demand

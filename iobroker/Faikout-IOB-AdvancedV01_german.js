@@ -106,6 +106,13 @@
  * wiederhergestellt (Gerät an, Komfort, Regelung). Außerhalb des
  * Zeitplans wird nichts geschaltet.
  *
+ * VORAUSSETZUNG AM FAIKOUT
+ * lockmode muss am Faikout aktiviert sein, damit kein automatischer
+ * Moduswechsel zwischen Heizen und Kühlen stattfindet. Ohne lockmode
+ * kann der Faikout selbstständig in den Kühlmodus wechseln, woraufhin
+ * dieses Skript pausiert und das Gerät unkontrolliert läuft.
+ * Einmalig setzen: MQTT topic setting/<Hostname>/lockmode, Wert: 1
+ *
  * ALIASE / SENSOREN
  *   power, mode (H = Heizen), fan, swingv, econo, comfort,
  *   setTemp (autot), deadband (autor), demand, heatback

@@ -2,7 +2,9 @@ blueprint:
   name: Klima Demand Hybrid Control (fix)
   description: >
     Demand Regelung für Klimageräte mit Außentemperatur, Raumkorrektur und Ramping.
-    Rundet Demand auf gültige 5%-Schritte (30-100)
+    Rundet Demand auf gültige 5%-Schritte (30-100).
+    Empfehlung: lockmode am Faikout aktivieren, damit kein automatischer Moduswechsel
+    durch den Faikout erfolgt (MQTT: setting/&lt;Hostname&gt;/lockmode, Wert: 1).
   domain: automation
 
   input:
